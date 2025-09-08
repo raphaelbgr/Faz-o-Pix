@@ -30,7 +30,7 @@
 ### Backend
 - **Framework**: Fastify + TypeScript
 - **Banco de dados**: PostgreSQL + Prisma ORM
-- **Autenticação**: JWT + Argon2id
+- **Autenticação**: Session-based + Argon2id
 - **Validação**: Zod schemas
 - **Documentação**: OpenAPI/Swagger
 
@@ -41,28 +41,26 @@
 - **Forms**: React Hook Form + Zod
 - **Notifications**: React Hot Toast
 
-### Infraestrutura
-- **Containerização**: Docker + Docker Compose com health checks
-- **Database**: PostgreSQL 14+ com volumes persistentes
-- **Cache**: Redis 7+ para sessões e performance
-- **Desenvolvimento**: Hot reload completo com monitoramento
-- **Produção**: Supabase PostgreSQL + Redis gerenciados
-- **Monitoramento**: Health checks integrados com métricas
+### Database
+- **Development**: PostgreSQL 14+ (External: 192.168.7.101)
+- **Production**: Supabase PostgreSQL
+- **Real-time**: WebSocket para atualizações instantâneas
 
 ## 🚀 Como executar
 
-### Configuração em 3 passos (Single-Command Setup)
+### Configuração em 3 passos
 
 ```bash
 # 1. Clone o repositório
-git clone <repo-url>
+git clone https://github.com/raphaelbgr/Faz-o-Pix.git
 cd Faz-o-Pix
 
 # 2. Copie a configuração de ambiente
 cp .env.example .env
 
-# 3. Inicie toda a infraestrutura
-docker-compose up --build
+# 3. Instale e execute
+npm install
+npm run dev
 ```
 
 **Pronto! 🎉** A aplicação estará disponível em:
@@ -73,63 +71,25 @@ docker-compose up --build
 
 ### Pré-requisitos
 
-- **Docker**: Version 20.10+ com Docker Compose
-- **Memória**: Mínimo 4GB RAM (recomendado 8GB)
-- **Portas**: 3000, 3001, 5432, 6379 devem estar livres
+- **Node.js**: Version 18+ com npm
+- **PostgreSQL**: Acesso ao banco de dados
+- **Portas**: 3000, 3001 devem estar livres
 
 ### Configurações de Banco de Dados
 
-O projeto suporta três modos de configuração de banco:
-
-#### 🐳 **Modo Docker (Padrão)**
-- PostgreSQL e Redis em containers
-- Configuração automática com volumes persistentes
-- Ideal para desenvolvimento local
-
-#### 🌐 **Modo Externo**
+#### 🌐 **Desenvolvimento (Externo)**
 - PostgreSQL externo (192.168.7.101)
-- Para desenvolvimento com banco compartilhado
-- Descomente `DATABASE_URL` no `.env`
+- Usuário: postgres, Senha: tjq5uxt3
+- Configure `DATABASE_URL` no `.env`
 
-#### ☁️ **Modo Produção (Supabase)**
+#### ☁️ **Produção (Supabase)**
 - PostgreSQL gerenciado na nuvem
-- Para staging/produção
-- Configure credenciais do Supabase
-
-### Verificação da Instalação
-
-Após `docker-compose up`, verifique se todos os serviços estão saudáveis:
-
-```bash
-# Status dos containers
-docker-compose ps
-
-# Health check da aplicação  
-curl http://localhost:3001/health
-
-# Logs em tempo real
-docker-compose logs -f
-```
-
-**Resposta esperada do health check:**
-```json
-{
-  "status": "healthy",
-  "services": {
-    "database": "connected",
-    "redis": "connected"
-  },
-  "version": "1.0.0",
-  "uptime": 12345
-}
-```
+- Configure credenciais do Supabase no `.env`
 
 ### Primeira Execução
 
 O sistema configurará automaticamente:
-- ✅ **Database**: PostgreSQL 14 com dados iniciais
-- ✅ **Cache**: Redis 7 para sessões e performance
-- ✅ **Migrations**: Schema aplicado automaticamente  
+- ✅ **Database**: Migrations aplicadas automaticamente  
 - ✅ **Seeds**: Dados de teste carregados
 - ✅ **Health Checks**: Monitoramento ativo de todos os serviços
 
@@ -161,7 +121,7 @@ O seed cria os seguintes dados:
 
 ## 🔧 Desenvolvimento
 
-### Executar sem Docker
+### Executar individualmente
 
 1. **Backend**:
 ```bash
@@ -179,39 +139,23 @@ npm install
 npm run dev
 ```
 
-3. **Banco PostgreSQL** (deve estar rodando em localhost:5432):
-```bash
-# Com PostgreSQL local
-createdb fazopix
-```
-
 ### Scripts úteis
 
 ```bash
-# Gerenciamento de serviços
-docker-compose ps                    # Status de todos os serviços
-docker-compose logs -f              # Logs em tempo real
-docker-compose logs postgres        # Logs específicos do PostgreSQL
-docker-compose logs redis           # Logs específicos do Redis
-
-# Health checks e monitoramento
+# Health checks
 curl http://localhost:3001/health           # Health check básico
 curl http://localhost:3001/health/detailed  # Health check detalhado
 curl http://localhost:3001/health/ready     # Readiness probe
 
 # Banco de dados
-docker-compose exec backend npx prisma studio    # Interface visual do banco
-docker-compose exec backend npx prisma migrate reset  # Reset completo
-docker-compose exec postgres psql -U postgres    # Acesso direto ao PostgreSQL
+npx prisma studio                   # Interface visual do banco
+npx prisma migrate reset           # Reset completo
+npx prisma db push                 # Aplicar mudanças de schema
+psql -h 192.168.7.101 -U postgres  # Acesso direto ao PostgreSQL dev
 
-# Cache Redis
-docker-compose exec redis redis-cli         # Redis CLI
-docker-compose exec redis redis-cli ping    # Teste de conectividade
-
-# Desenvolvimento
-docker-compose restart backend      # Reiniciar apenas o backend
-docker-compose restart frontend     # Reiniciar apenas o frontend
-docker-compose down -v             # Parar e remover volumes
+# Produção
+npm run build                      # Build completo
+npm start                         # Executar em produção
 ```
 
 ### Estrutura do projeto
@@ -228,29 +172,27 @@ Faz-o-Pix/
 │   ├── prisma/
 │   │   ├── schema.prisma      # Schema do banco
 │   │   └── seed.ts            # Dados iniciais
-│   └── Dockerfile.dev         # Container de desenvolvimento
+│   └── package.json           # Dependências backend
 ├── frontend/                   # App Next.js
 │   ├── src/
 │   │   ├── app/              # App Router (Next.js 14)
 │   │   ├── components/       # Componentes React
 │   │   ├── lib/              # Utilitários (API client)
 │   │   └── utils/            # Validações e formatações
-│   └── Dockerfile.dev        # Container de desenvolvimento
+│   └── package.json          # Dependências frontend
 ├── shared/                     # Tipos compartilhados (monorepo)
 │   ├── types/
 │   │   ├── common.ts         # Tipos comuns
 │   │   ├── api.ts            # Tipos da API
 │   │   └── index.ts          # Barrel exports
 │   └── package.json          # Configuração do módulo
-├── docker/                     # Configurações de container
-│   └── postgres/
-│       └── init.sql          # Script de inicialização
 ├── docs/                       # Documentação completa
-│   ├── SETUP.md              # Guia de instalação
-│   ├── TROUBLESHOOTING.md    # Resolução de problemas
-│   └── story.md              # Stories de desenvolvimento
-├── docker-compose.yml         # Orquestração completa
+│   ├── prd/                  # Product Requirements Document
+│   │   └── stories/          # Stories detalhadas (18 stories)
+│   ├── project-brief.md      # Contexto do projeto
+│   └── prd.md               # PRD principal
 ├── .env.example               # Configuração de ambiente
+├── package.json               # Scripts do monorepo
 └── README.md                  # Este arquivo
 ```
 
@@ -291,6 +233,7 @@ Faz-o-Pix/
 
 ## 📝 Próximos passos
 
+- [ ] Implementação das 18 stories documentadas
 - [ ] Notificações push/email
 - [ ] Export para PDF/Excel  
 - [ ] Gastos recorrentes
