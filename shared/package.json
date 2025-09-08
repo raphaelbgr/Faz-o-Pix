@@ -1,0 +1,52 @@
+{
+  "name": "@fazopix/shared",
+  "version": "1.0.0",
+  "description": "Shared types and utilities for the Faz-o-Pix monorepo",
+  "main": "types/index.ts",
+  "types": "types/index.ts",
+  "exports": {
+    ".": {
+      "types": "./types/index.ts",
+      "import": "./types/index.ts",
+      "require": "./types/index.ts"
+    },
+    "./types": {
+      "types": "./types/index.ts",
+      "import": "./types/index.ts",
+      "require": "./types/index.ts"
+    },
+    "./types/common": {
+      "types": "./types/common.ts",
+      "import": "./types/common.ts",
+      "require": "./types/common.ts"
+    },
+    "./types/api": {
+      "types": "./types/api.ts",
+      "import": "./types/api.ts",
+      "require": "./types/api.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "keywords": [
+    "fazopix",
+    "shared",
+    "types",
+    "typescript",
+    "monorepo"
+  ],
+  "author": "Faz-o-Pix Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fazopix/fazopix",
+    "directory": "shared"
+  }
+}

@@ -1,0 +1,85 @@
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Testing
+coverage
+*.lcov
+.nyc_output
+
+# Next.js
+.next/
+out/
+build/
+
+# Environment files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+
+# Vercel
+.vercel
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Git
+.git
+.gitignore
+README.md
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env*.local
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs
+*.log
+
+# Development files
+*.md
+.prettierrc*
+.eslintrc*
+jest.config.*
+next.config.*
+tailwind.config.*
+postcss.config.*
+tsconfig.json
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Documentation
+docs/
+
+# Other monorepo parts
+../backend/
+../shared/
+../docs/
+../web-bundles/

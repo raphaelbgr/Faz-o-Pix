@@ -1,0 +1,224 @@
+# =============================================================================
+# Faz-o-Pix - Comprehensive .gitignore
+# =============================================================================
+
+# =============================================================================
+# NODE.JS & DEPENDENCIES
+# =============================================================================
+node_modules/
+*/node_modules/
+.pnp
+.pnp.js
+
+# =============================================================================
+# BUILD ARTIFACTS
+# =============================================================================
+dist/
+build/
+out/
+.next/
+coverage/
+*.tsbuildinfo
+
+# =============================================================================
+# ENVIRONMENT & CONFIGURATION
+# =============================================================================
+# Environment files (NEVER commit these!)
+.env
+.env.local
+.env.development
+.env.development.local
+.env.test
+.env.test.local
+.env.production
+.env.production.local
+
+# Local configuration overrides
+config.local.json
+*.local.json
+
+# =============================================================================
+# DATABASE & STORAGE
+# =============================================================================
+# Docker volumes
+postgres_data/
+redis_data/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Prisma development database
+backend/prisma/dev.db*
+backend/prisma/migrations/dev.db*
+
+# Backup files
+*.backup
+*.dump
+*.sql.gz
+
+# =============================================================================
+# LOGGING & DEBUGGING
+# =============================================================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Debug files
+.debug
+debug.log
+error.log
+
+# =============================================================================
+# TESTING & COVERAGE
+# =============================================================================
+coverage/
+*.lcov
+.nyc_output
+test-results/
+test-reports/
+junit.xml
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+# IDEs and editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+
+# Development certificates
+*.pem
+*.key
+*.crt
+
+# Cache directories
+.cache/
+.parcel-cache/
+.eslintcache
+
+# =============================================================================
+# OPERATING SYSTEM
+# =============================================================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+
+# =============================================================================
+# DOCKER & CONTAINERIZATION
+# =============================================================================
+# Don't ignore Dockerfiles, but ignore some Docker artifacts
+docker-compose.override.yml
+.docker/
+
+# =============================================================================
+# PACKAGE MANAGERS
+# =============================================================================
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# NPM
+package-lock.json.bak
+
+# PNPM
+.pnpm-debug.log*
+
+# =============================================================================
+# RUNTIME & TEMPORARY FILES
+# =============================================================================
+pids/
+*.pid
+*.seed
+*.pid.lock
+tmp/
+temp/
+
+# =============================================================================
+# SECURITY & SECRETS
+# =============================================================================
+# Never commit sensitive files
+secrets/
+.secrets
+*.key
+*.pem
+*.p12
+*.pfx
+
+# JWT keys
+jwt-*.key
+*.jwt
+
+# =============================================================================
+# DOCUMENTATION ARTIFACTS
+# =============================================================================
+# Generated documentation
+docs/generated/
+docs/api/generated/
+
+# =============================================================================
+# ANALYTICS & MONITORING
+# =============================================================================
+# Vercel
+.vercel
+
+# Sentry
+.sentryclirc
+
+# =============================================================================
+# MOBILE DEVELOPMENT (Future support)
+# =============================================================================
+# React Native
+.expo/
+.metro-health-check*
+
+# =============================================================================
+# SHARED MODULE BUILDS
+# =============================================================================
+shared/dist/
+shared/build/
+
+# =============================================================================
+# AI ASSISTANT DIRECTORIES
+# =============================================================================
+# Ignore AI assistant directories completely
+.claude/
+.cursor/
+.agilis-core/
+
+# =============================================================================
+# CUSTOM PROJECT IGNORES
+# =============================================================================
+# Web bundles (build artifacts)
+web-bundles/
+
+# Keep documentation directory (explicitly don't ignore)
+!/docs/
+
+# Add any project-specific files to ignore here

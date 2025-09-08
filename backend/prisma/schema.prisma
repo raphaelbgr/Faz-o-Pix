@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum IdentifierType {
+  PIX_CPF
+  PIX_CNPJ
+  PIX_EMAIL
+  PIX_PHONE
+  PIX_EVP
+  EMAIL
+  PHONE
+}
+
+enum BillRole {
+  OWNER
+  MEMBER
+}
+
+enum ShareType {
+  EQUAL
+  PERCENT
+  SHARES
+}
+
+enum SettlementMethod {
+  PIX
+  CASH
+  OTHER
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String   @map("full_name")
+  passwordHash String   @map("password_hash")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  identifiers         Identifier[]
+  ownedBills          Bill[]
+  participantLink     UserParticipantLink?
+  sessions            Session[]
+  billChangelogs      BillChangelog[]
+
+  @@map("users")
+}
+
+model Identifier {
+  id        String         @id @default(uuid())
+  userId    String         @map("user_id")
+  type      IdentifierType
+  value     String         @unique
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([value])
+  @@map("identifiers")
+}
+
+model Participant {
+  id          String   @id @default(uuid())
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  identifiers         ParticipantIdentifier[]
+  billMembers         BillMember[]
+  paidExpenses        Expense[]               @relation("ExpensePayer")
+  expenseSplits       ExpenseSplit[]
+  settlementsFrom     Settlement[]            @relation("SettlementFrom")
+  settlementsTo       Settlement[]            @relation("SettlementTo")
+  userLink            UserParticipantLink?
+
+  @@map("participants")
+}
+
+model ParticipantIdentifier {
+  id            String         @id @default(uuid())
+  participantId String         @map("participant_id")
+  type          IdentifierType
+  value         String         @unique
+  createdAt     DateTime       @default(now()) @map("created_at")
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+
+  @@index([participantId])
+  @@index([value])
+  @@map("participant_identifiers")
+}
+
+model UserParticipantLink {
+  participantId String @unique @map("participant_id")
+  userId        String @unique @map("user_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([participantId, userId])
+  @@map("users_participants_link")
+}
+
+model Bill {
+  id            String   @id @default(uuid())
+  ownerUserId   String   @map("owner_user_id")
+  name          String
+  description   String?
+  currency      String   @default("BRL")
+  simplifyDebts Boolean  @default(false) @map("simplify_debts")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  owner       User         @relation(fields: [ownerUserId], references: [id])
+  members     BillMember[]
+  expenses    Expense[]
+  settlements Settlement[]
+  changelog   BillChangelog[]
+
+  @@index([ownerUserId])
+  @@map("bills")
+}
+
+model BillMember {
+  id            String   @id @default(uuid())
+  billId        String   @map("bill_id")
+  participantId String   @map("participant_id")
+  role          BillRole @default(MEMBER)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id])
+
+  @@unique([billId, participantId])
+  @@index([billId])
+  @@index([participantId])
+  @@map("bill_members")
+}
+
+model Expense {
+  id                 String   @id @default(uuid())
+  billId             String   @map("bill_id")
+  payerParticipantId String   @map("payer_participant_id")
+  amountCents        Int      @map("amount_cents")
+  description        String?
+  spentAt            DateTime @map("spent_at")
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  bill   Bill           @relation(fields: [billId], references: [id], onDelete: Cascade)
+  payer  Participant    @relation("ExpensePayer", fields: [payerParticipantId], references: [id])
+  splits ExpenseSplit[]
+
+  @@index([billId])
+  @@index([payerParticipantId])
+  @@map("expenses")
+}
+
+model ExpenseSplit {
+  id            String    @id @default(uuid())
+  expenseId     String    @map("expense_id")
+  participantId String    @map("participant_id")
+  shareType     ShareType @map("share_type")
+  shareValue    Decimal   @map("share_value") @db.Decimal(10, 4)
+  amountCents   Int       @map("amount_cents")
+
+  expense     Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  participant Participant @relation(fields: [participantId], references: [id])
+
+  @@index([expenseId])
+  @@index([participantId])
+  @@map("expense_splits")
+}
+
+model Settlement {
+  id                 String           @id @default(uuid())
+  billId             String           @map("bill_id")
+  fromParticipantId  String           @map("from_participant_id")
+  toParticipantId    String           @map("to_participant_id")
+  amountCents        Int              @map("amount_cents")
+  method             SettlementMethod
+  reference          String?
+  note               String?
+  createdAt          DateTime         @default(now()) @map("created_at")
+
+  bill            Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
+  fromParticipant Participant @relation("SettlementFrom", fields: [fromParticipantId], references: [id])
+  toParticipant   Participant @relation("SettlementTo", fields: [toParticipantId], references: [id])
+
+  @@index([billId])
+  @@index([fromParticipantId])
+  @@index([toParticipantId])
+  @@map("settlements")
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+model BillChangelog {
+  id            String   @id @default(uuid())
+  billId        String   @map("bill_id")
+  userId        String   @map("user_id")
+  action        String   // 'EXPENSE_ADDED', 'EXPENSE_UPDATED', 'EXPENSE_DELETED', 'MEMBER_ADDED', 'SETTLEMENT_ADDED'
+  entityType    String   @map("entity_type") // 'EXPENSE', 'MEMBER', 'SETTLEMENT'
+  entityId      String?  @map("entity_id")
+  description   String
+  metadata      Json?    // Store additional change details
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([billId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("bill_changelog")
+}
