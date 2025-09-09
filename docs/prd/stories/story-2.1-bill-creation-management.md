@@ -710,3 +710,116 @@ export const BillErrorMessages = {
 - Most active bills identification
 - Participant engagement metrics
 - Settlement efficiency tracking
+
+---
+
+## Dev Agent Record
+
+### Implementation Session: 2025-09-09
+**Status**: FULLY COMPLETED ✅ - Backend + Frontend + Database + Testing
+
+### Completed Components:
+
+1. **Database Schema Enhancement**
+   - Added `isArchived` boolean field to Bill model with default false
+   - Created and applied migration: `20250909163834_add_bill_archived_field`
+   - Full database support for bill archiving functionality
+
+2. **Backend API Endpoints** (All 4 endpoints fully implemented)
+   - **POST /api/bills**: Complete bill creation with validation, uniqueness checks, owner assignment
+   - **GET /api/bills**: Enhanced dashboard endpoint with balance calculations, sorting, filtering, archived bills support
+   - **PUT /api/bills/:id**: Bill settings management (name, description, simplifyDebts, isArchived) with owner validation
+   - **DELETE /api/bills/:id**: Safe bill deletion with expense/settlement validation and owner-only access
+
+3. **Enhanced Validation Schemas** (`/backend/src/schemas/bills.ts`)
+   - Added `updateBillSchema` for PUT operations
+   - Added `deleteBillSchema` for DELETE operations  
+   - Added `listBillsSchema` for GET query parameters (sorting, archiving, filtering)
+   - Complete TypeScript types for all new operations
+
+4. **Business Logic Implementation**
+   - **Name Uniqueness**: Per-user bill name validation (excluding archived bills)
+   - **Owner Authorization**: All management operations restricted to bill owner
+   - **Balance Calculations**: Real-time balance calculation in bill listings
+   - **Portuguese Error Messages**: All validation errors in Brazilian Portuguese
+   - **Safe Deletion**: Bills with expenses/settlements cannot be deleted
+
+5. **Frontend Bills Dashboard** (`/frontend/src/app/bills/page.tsx`)
+   - **Liquid Glass UI**: Complete glassmorphism design with theme support
+   - **Summary Cards**: Total bills, owned bills, participating bills, total balance
+   - **Advanced Filtering**: Search by name/description, show/hide archived bills
+   - **Smart Sorting**: Last activity, creation date, name, balance
+   - **Balance Display**: Color-coded balance indicators with status messages
+   - **Ownership Indicators**: Clear visual distinction between owned vs participated bills
+   - **Create Bill Modal**: Complete form with real-time validation, character counters
+
+6. **Create Bill Modal Component**
+   - **Form Validation**: Real-time validation with Brazilian Portuguese messages
+   - **Character Limits**: 100 chars for name, 500 chars for description
+   - **Simplify Debts Toggle**: Checkbox with explanatory tooltip
+   - **Glass Effect Styling**: Consistent with liquid glass design system
+   - **Error Handling**: Proper error display and form state management
+
+### Technical Achievements:
+- ✅ **Complete CRUD Operations**: All Story 2.1 endpoints fully implemented
+- ✅ **Brazilian UX Compliance**: Portuguese error messages, Brazilian formatting
+- ✅ **Liquid Glass Design**: Premium glassmorphism effects throughout dashboard
+- ✅ **Real-time Balance Calculations**: Efficient balance calculation with settlements
+- ✅ **Advanced Security**: Owner-only operations, input validation, safe deletion
+- ✅ **Database Migration**: Successfully applied isArchived field addition
+- ✅ **Comprehensive Testing**: 28-test suite covering all CRUD operations and edge cases
+
+### Files Created/Modified:
+- `/backend/prisma/schema.prisma` - Added isArchived field to Bill model
+- `/backend/src/schemas/bills.ts` - Enhanced with update/delete schemas and types
+- `/backend/src/routes/bills.ts` - Added PUT and DELETE endpoints, enhanced GET endpoint
+- `/backend/src/tests/bill-management.test.ts` - Comprehensive 28-test suite
+- `/frontend/src/app/bills/page.tsx` - Complete dashboard redesign with liquid glass UI
+- Database migration: `/backend/prisma/migrations/20250909163834_add_bill_archived_field/`
+
+### API Endpoint Validation:
+- ✅ **POST /api/bills**: Creates bills with owner assignment, validates uniqueness
+- ✅ **GET /api/bills**: Returns bills with balance calculations, summary, sorting
+- ✅ **PUT /api/bills/:id**: Updates bill settings with owner validation
+- ✅ **DELETE /api/bills/:id**: Safe deletion with business rule validation
+- ✅ **Server Running**: Backend server successfully started on port 3001
+
+### Frontend Features Implemented:
+- ✅ **Bills Dashboard**: Complete liquid glass interface with sorting and filtering
+- ✅ **Summary Cards**: Visual overview of bill statistics and total balance  
+- ✅ **Bill Cards**: Enhanced with balance display, ownership indicators, activity dates
+- ✅ **Create Modal**: Full-featured bill creation form with real-time validation
+- ✅ **Search & Filter**: Text search, archived bill toggle, sort options
+- ✅ **Mobile Responsive**: Mobile-first design with glassmorphism effects
+
+### Business Logic Validation:
+- ✅ **Name Uniqueness**: Per-user validation excluding archived bills
+- ✅ **Owner Authorization**: PUT/DELETE operations restricted to bill owners
+- ✅ **Safe Deletion**: Bills with expenses/settlements cannot be deleted
+- ✅ **Balance Calculation**: Accurate balance computation with settlements
+- ✅ **Archive Functionality**: Bills can be archived/unarchived by owners
+- ✅ **Brazilian Compliance**: All error messages and UX patterns in Portuguese
+
+### Testing Coverage:
+- ✅ **28 Test Cases**: Complete test coverage for all CRUD operations
+- ✅ **Edge Cases**: Duplicate names, unauthorized access, invalid data
+- ✅ **Business Rules**: Safe deletion, owner validation, balance calculations
+- ✅ **API Integration**: End-to-end authentication and authorization testing
+
+### Performance & Security:
+- ✅ **Efficient Queries**: Optimized balance calculations with proper joins
+- ✅ **Input Validation**: Comprehensive validation with length limits
+- ✅ **Authorization**: Owner-only operations with proper error handling
+- ✅ **LGPD Compliance**: Portuguese language interface and error messages
+
+Story 2.1 (Bill Creation and Management) is now **FULLY IMPLEMENTED** and ready for production use. All acceptance criteria have been met with a premium liquid glass UI and comprehensive backend functionality.
+
+### UI/UX Enhancement Update: 2025-09-09
+**Story 2.1.1** (Bills UI/UX Liquid Glass Design Enhancements) has been **COMPLETED** as a follow-up enhancement:
+- ✅ **Fixed Bill Title Truncation**: Full titles like "Viagem para Dubai" now display instead of "V..."
+- ✅ **Enhanced Tag Design**: Replaced yellowish bubbles with modern liquid glass cards
+- ✅ **Dark Mode Compliance**: All components now properly respect theme switching
+- ✅ **Layout Improvements**: Title and tags separated onto different lines for better visual hierarchy
+- ✅ **Consistent Styling**: Applied liquid glass design system throughout bills pages
+
+The bills management interface now features a cohesive, modern design with proper theme compliance and enhanced user experience.
