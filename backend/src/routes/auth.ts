@@ -2,6 +2,7 @@ import { FastifyPluginAsync } from 'fastify';
 import { signupSchema, loginSchema, SignupInput, LoginInput } from '../schemas/auth';
 import { normalizeIdentifier, detectIdentifierType } from '../utils/validation';
 import { Prisma } from '@prisma/client';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Signup
@@ -9,7 +10,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     '/signup',
     {
       schema: {
-        body: signupSchema.shape.body,
+        body: zodToJsonSchema(signupSchema.shape.body),
         response: {
           201: {
             type: 'object',
@@ -149,7 +150,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     '/login',
     {
       schema: {
-        body: loginSchema.shape.body,
+        body: zodToJsonSchema(loginSchema.shape.body),
         response: {
           200: {
             type: 'object',

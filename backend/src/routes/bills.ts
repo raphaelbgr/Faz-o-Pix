@@ -15,6 +15,7 @@ import { normalizeIdentifier } from '../utils/validation';
 import { ShareType } from '@prisma/client';
 import { calculateBalances, simplifyDebts } from '../services/balanceCalculator';
 import { ChangelogService } from '../services/changelogService';
+import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const billRoutes: FastifyPluginAsync = async (fastify) => {
   const changelogService = new ChangelogService(fastify, fastify.prisma);
@@ -24,7 +25,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        body: createBillSchema.shape.body,
+        body: zodToJsonSchema(createBillSchema.shape.body),
       },
     },
     async (request, reply) => {
@@ -121,8 +122,8 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: addMemberSchema.shape.params,
-        body: addMemberSchema.shape.body,
+        params: zodToJsonSchema(addMemberSchema.shape.params),
+        body: zodToJsonSchema(addMemberSchema.shape.body),
       },
     },
     async (request, reply) => {
@@ -224,8 +225,8 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: addExpenseSchema.shape.params,
-        body: addExpenseSchema.shape.body,
+        params: zodToJsonSchema(addExpenseSchema.shape.params),
+        body: zodToJsonSchema(addExpenseSchema.shape.body),
       },
     },
     async (request, reply) => {
@@ -335,7 +336,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: getBillSchema.shape.params,
+        params: zodToJsonSchema(getBillSchema.shape.params),
       },
     },
     async (request) => {
@@ -413,7 +414,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: getBalancesSchema.shape.params,
+        params: zodToJsonSchema(getBalancesSchema.shape.params),
       },
     },
     async (request) => {
@@ -483,8 +484,8 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: recordSettlementSchema.shape.params,
-        body: recordSettlementSchema.shape.body,
+        params: zodToJsonSchema(recordSettlementSchema.shape.params),
+        body: zodToJsonSchema(recordSettlementSchema.shape.body),
       },
     },
     async (request, reply) => {
@@ -569,7 +570,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
       schema: {
-        params: getBillSchema.shape.params,
+        params: zodToJsonSchema(getBillSchema.shape.params),
       },
     },
     async (request) => {

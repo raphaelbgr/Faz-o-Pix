@@ -8,6 +8,9 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        border: "hsl(var(--border))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
         pix: {
           50: '#f0fdf4',
           100: '#dcfce7',

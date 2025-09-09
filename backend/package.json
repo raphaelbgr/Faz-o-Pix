@@ -27,6 +27,7 @@
     "@fastify/websocket": "^10.0.1",
     "@prisma/client": "^5.9.1",
     "argon2": "^0.31.2",
+    "dotenv": "^17.2.2",
     "fastify": "^4.26.0",
     "fastify-plugin": "^4.5.1",
     "pino-pretty": "^10.3.1",
