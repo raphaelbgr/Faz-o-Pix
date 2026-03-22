@@ -41,11 +41,7 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  identifiers         Identifier[]
-  ownedBills          Bill[]
-  participantLink     UserParticipantLink?
-  sessions            Session[]
-  billChangelogs      BillChangelog[]
+  // No relations - tables are independent
 
   @@map("users")
 }
@@ -57,7 +53,7 @@ model Identifier {
   value     String         @unique
   createdAt DateTime       @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No foreign key constraint - tables are independent
 
   @@index([userId])
   @@index([value])
@@ -69,13 +65,7 @@ model Participant {
   displayName String?  @map("display_name")
   createdAt   DateTime @default(now()) @map("created_at")
 
-  identifiers         ParticipantIdentifier[]
-  billMembers         BillMember[]
-  paidExpenses        Expense[]               @relation("ExpensePayer")
-  expenseSplits       ExpenseSplit[]
-  settlementsFrom     Settlement[]            @relation("SettlementFrom")
-  settlementsTo       Settlement[]            @relation("SettlementTo")
-  userLink            UserParticipantLink?
+  // No relations - tables are independent
 
   @@map("participants")
 }
@@ -87,7 +77,7 @@ model ParticipantIdentifier {
   value         String         @unique
   createdAt     DateTime       @default(now()) @map("created_at")
 
-  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+  // No foreign key constraint - tables are independent
 
   @@index([participantId])
   @@index([value])
@@ -99,8 +89,7 @@ model UserParticipantLink {
   userId        String @unique @map("user_id")
   createdAt     DateTime @default(now()) @map("created_at")
 
-  participant Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No foreign key constraints - tables are independent
 
   @@id([participantId, userId])
   @@map("users_participants_link")
@@ -112,15 +101,12 @@ model Bill {
   name          String
   description   String?
   currency      String   @default("BRL")
-  simplifyDebts Boolean  @default(false) @map("simplify_debts")
+  simplifyDebts Boolean  @default(true) @map("simplify_debts")
+  isArchived    Boolean  @default(false) @map("is_archived")
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  owner       User         @relation(fields: [ownerUserId], references: [id])
-  members     BillMember[]
-  expenses    Expense[]
-  settlements Settlement[]
-  changelog   BillChangelog[]
+  // No relations - tables are independent
 
   @@index([ownerUserId])
   @@map("bills")
@@ -133,8 +119,7 @@ model BillMember {
   role          BillRole @default(MEMBER)
   createdAt     DateTime @default(now()) @map("created_at")
 
-  bill        Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
-  participant Participant @relation(fields: [participantId], references: [id])
+  // No foreign key constraints - tables are independent
 
   @@unique([billId, participantId])
   @@index([billId])
@@ -151,9 +136,7 @@ model Expense {
   spentAt            DateTime @map("spent_at")
   createdAt          DateTime @default(now()) @map("created_at")
 
-  bill   Bill           @relation(fields: [billId], references: [id], onDelete: Cascade)
-  payer  Participant    @relation("ExpensePayer", fields: [payerParticipantId], references: [id])
-  splits ExpenseSplit[]
+  // No foreign key constraints - tables are independent
 
   @@index([billId])
   @@index([payerParticipantId])
@@ -168,8 +151,7 @@ model ExpenseSplit {
   shareValue    Decimal   @map("share_value") @db.Decimal(10, 4)
   amountCents   Int       @map("amount_cents")
 
-  expense     Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
-  participant Participant @relation(fields: [participantId], references: [id])
+  // No foreign key constraints - tables are independent
 
   @@index([expenseId])
   @@index([participantId])
@@ -187,9 +169,7 @@ model Settlement {
   note               String?
   createdAt          DateTime         @default(now()) @map("created_at")
 
-  bill            Bill        @relation(fields: [billId], references: [id], onDelete: Cascade)
-  fromParticipant Participant @relation("SettlementFrom", fields: [fromParticipantId], references: [id])
-  toParticipant   Participant @relation("SettlementTo", fields: [toParticipantId], references: [id])
+  // No foreign key constraints - tables are independent
 
   @@index([billId])
   @@index([fromParticipantId])
@@ -204,7 +184,7 @@ model Session {
   expiresAt DateTime @map("expires_at")
   createdAt DateTime @default(now()) @map("created_at")
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // No foreign key constraint - tables are independent
 
   @@index([userId])
   @@index([token])
@@ -222,8 +202,7 @@ model BillChangelog {
   metadata      Json?    // Store additional change details
   createdAt     DateTime @default(now()) @map("created_at")
 
-  bill Bill @relation(fields: [billId], references: [id], onDelete: Cascade)
-  user User @relation(fields: [userId], references: [id])
+  // No foreign key constraints - tables are independent
 
   @@index([billId])
   @@index([userId])

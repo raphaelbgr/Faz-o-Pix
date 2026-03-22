@@ -1,12 +1,23 @@
-import { describe, it, expect, beforeAll, afterAll } from 'vitest'
+import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest'
 import { build } from '../app.js'
 import { FastifyInstance } from 'fastify'
+import { TestCleanupService } from '../services/deleteService'
 
 describe('Authentication API', () => {
   let app: FastifyInstance
+  let testCleanupService: TestCleanupService
 
   beforeAll(async () => {
     app = await build()
+    testCleanupService = new TestCleanupService(app.prisma)
+  })
+
+  beforeEach(async () => {
+    // Clean up test data before each test
+    await testCleanupService.cleanupTestData('auth-test@')
+    await testCleanupService.cleanupTestData('logintest')
+    await testCleanupService.cleanupTestData('logouttest@')
+    await testCleanupService.cleanupTestData('duplicate-test@')
   })
 
   afterAll(async () => {
@@ -116,8 +127,10 @@ describe('Authentication API', () => {
 
   describe('POST /api/auth/login', () => {
     it('should login with valid CPF', async () => {
+      const timestamp = Date.now()
+      
       // Create test user for this specific test
-      await app.inject({
+      const signupResponse = await app.inject({
         method: 'POST',
         url: '/api/auth/signup',
         payload: {
@@ -126,21 +139,24 @@ describe('Authentication API', () => {
           identifiers: [
             {
               type: 'PIX_CPF',
-              value: '12345678909'
+              value: '11144477735' // Valid CPF format
             },
             {
               type: 'PIX_EMAIL',
-              value: 'logincpftest@example.com'
+              value: `logintest-cpf-${timestamp}@example.com`
             }
           ]
         }
       })
+      
+      // Verify signup succeeded
+      expect(signupResponse.statusCode).toBe(201)
 
       const response = await app.inject({
         method: 'POST',
         url: '/api/auth/login',
         payload: {
-          identifier: '12345678909',
+          identifier: '11144477735',
           password: 'testpassword123'
         }
       })

@@ -44,7 +44,7 @@ describe('Story 1.2: Database Schema and Prisma Setup', () => {
       expect(tableNames).toContain('bill_changelog')
     })
 
-    it('should have proper foreign key relationships', async () => {
+    it('should have independent tables without foreign key constraints', async () => {
       const constraints = await prisma.$queryRaw`
         SELECT 
           tc.constraint_name, 
@@ -64,33 +64,22 @@ describe('Story 1.2: Database Schema and Prisma Setup', () => {
         ORDER BY tc.table_name, tc.constraint_name
       ` as any[]
 
-      // Check key relationships exist
-      const relationships = constraints.map(c => ({
-        table: c.table_name,
-        column: c.column_name,
-        foreignTable: c.foreign_table_name,
-        foreignColumn: c.foreign_column_name
-      }))
-
-      // User -> Identifier relationship
-      expect(relationships).toContainEqual(
-        expect.objectContaining({
-          table: 'identifiers',
-          column: 'user_id',
-          foreignTable: 'users',
-          foreignColumn: 'id'
-        })
-      )
-
-      // Bill -> User relationship
-      expect(relationships).toContainEqual(
-        expect.objectContaining({
-          table: 'bills',
-          column: 'owner_user_id',
-          foreignTable: 'users',
-          foreignColumn: 'id'
-        })
-      )
+      // After Story 1.7: Database Constraint Optimization
+      // All foreign key constraints have been removed for easier deletion
+      // Tables are now completely independent
+      expect(constraints.length).toBe(0)
+      
+      // Verify that the tables still exist and can store data independently
+      const tableCount = await prisma.$queryRaw<{count: bigint}[]>`
+        SELECT COUNT(*) as count 
+        FROM information_schema.tables 
+        WHERE table_schema = 'public' 
+        AND table_type = 'BASE TABLE'
+        AND table_name NOT LIKE '_prisma%'
+      `
+      
+      // Should have all our core tables
+      expect(Number(tableCount[0].count)).toBeGreaterThan(10)
     })
   })
 

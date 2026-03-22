@@ -1,12 +1,18 @@
+import { ThemeToggle } from '@/components/ThemeToggle'
+
 export default function PrivacidadePage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 py-12">
+      <div className="fixed top-6 right-6 z-50">
+        <ThemeToggle />
+      </div>
+      
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="bg-white shadow rounded-lg">
+        <div className="glass-card">
           <div className="px-4 py-5 sm:p-6">
             <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900">Política de Privacidade</h1>
-              <p className="text-sm text-gray-600 mt-2">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Política de Privacidade</h1>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
                 Faz-o-Pix - Conforme LGPD (Lei 13.709/2018)
               </p>
             </div>

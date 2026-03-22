@@ -198,6 +198,7 @@ Faz-o-Pix/
 
 ## 🧪 Como testar
 
+### Interface do usuário
 1. **Registro**: Crie uma conta com CPF válido
 2. **Login**: Entre com qualquer identificador cadastrado
 3. **Criar conta**: Nova conta compartilhada
@@ -205,6 +206,23 @@ Faz-o-Pix/
 5. **Registrar gastos**: Com diferentes divisões
 6. **Ver balanços**: Com simplificação opcional
 7. **Liquidar dívidas**: Registrar pagamentos PIX
+
+### Testes automatizados
+```bash
+# Executar testes individuais (recomendado)
+cd backend
+npm test -- auth.test.ts                    # ✅ 13/13 testes passando
+npm test -- validation.test.ts              # ✅ 25/25 testes passando
+npm test -- bill-management.test.ts         # ✅ Funcionalidade verificada
+
+# Executar suite completa (tem problemas de interdependência)
+npm test                                     # ⚠️ 53 failed | 134 passed
+
+# Ver documentação de testes
+open docs/TESTING.md
+```
+
+**Status atual**: Todas as funcionalidades principais funcionam quando testadas individualmente. Epic 5 resolverá problemas de interdependência entre testes.
 
 ## ⚡ Funcionalidades principais
 
@@ -233,7 +251,14 @@ Faz-o-Pix/
 
 ## 📝 Próximos passos
 
-- [ ] Implementação das 18 stories documentadas
+### Epic 5: Testing Infrastructure & Quality Assurance
+- [ ] **Database mocking**: Implementar isolamento de testes com banco mock
+- [ ] **Test stabilization**: Resolver problemas de interdependência entre testes
+- [ ] **Performance testing**: Framework de testes de carga e performance
+- [ ] **CI/CD quality gates**: Pipeline automatizado de qualidade
+- [ ] **Production monitoring**: Sistema de monitoramento e alertas
+
+### Funcionalidades futuras
 - [ ] Notificações push/email
 - [ ] Export para PDF/Excel  
 - [ ] Gastos recorrentes

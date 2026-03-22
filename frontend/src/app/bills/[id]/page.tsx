@@ -8,6 +8,7 @@ import { formatCurrency, formatDateBrazilian, formatRelativeTimeBrazilian } from
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { ChangelogPanel } from '@/components/ChangelogPanel'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import AddExpenseModalV2 from '@/components/AddExpenseModalV2'
 import { useEffect, useState } from 'react'
 
 interface Bill {
@@ -64,6 +65,7 @@ export default function BillDetailPage() {
   const params = useParams()
   const billId = params.id as string
   const [token, setToken] = useState<string | null>(null)
+  const [showExpenseModal, setShowExpenseModal] = useState(false)
 
   // Get JWT token from cookies
   useEffect(() => {
@@ -264,7 +266,9 @@ export default function BillDetailPage() {
                   </svg>
                   Gastos
                 </h2>
-                <button className="glass-card px-4 py-2 bg-[hsl(var(--pix-primary))]/20 hover:bg-[hsl(var(--pix-primary))] text-[hsl(var(--pix-primary))] hover:text-white transition-all duration-300 hover:glow text-sm">
+                <button 
+                  onClick={() => setShowExpenseModal(true)}
+                  className="glass-card px-4 py-2 bg-[hsl(var(--pix-primary))]/20 hover:bg-[hsl(var(--pix-primary))] text-[hsl(var(--pix-primary))] hover:text-white transition-all duration-300 hover:glow text-sm">
                   Adicionar Gasto
                 </button>
               </div>
@@ -391,6 +395,22 @@ export default function BillDetailPage() {
           </div>
         </div>
       </div>
+      
+      {/* Add Expense Modal */}
+      <AddExpenseModalV2
+        isOpen={showExpenseModal}
+        onClose={() => setShowExpenseModal(false)}
+        billId={billId}
+        participants={bill.members.map(member => ({
+          participant_id: member.participant.id,
+          display_name: member.participant.displayName || 'Participante',
+          is_placeholder: !member.participant.userLink
+        }))}
+        onExpenseAdded={() => {
+          // Refetch bill data
+          window.location.reload()
+        }}
+      />
     </div>
   )
 }

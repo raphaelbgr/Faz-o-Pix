@@ -1,6 +1,23 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient } from '@prisma/client';
-import { HealthStatus, ServiceCheck } from '../../../shared/types/common';
+
+// Local type definitions
+interface HealthStatus {
+  status: 'healthy' | 'unhealthy';
+  timestamp: string;
+  services: {
+    database: 'connected' | 'disconnected';
+  };
+  version: string;
+  uptime: number;
+}
+
+interface ServiceCheck {
+  name: string;
+  status: 'connected' | 'disconnected';
+  responseTime: number;
+  error?: string;
+}
 
 export default async function healthRoutes(fastify: FastifyInstance) {
   // Comprehensive health check endpoint

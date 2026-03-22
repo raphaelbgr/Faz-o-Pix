@@ -78,18 +78,27 @@ const websocketPlugin: FastifyPluginAsync = async (fastify) => {
         // Send initial changelog
         const recentChangelog = await fastify.prisma.billChangelog.findMany({
           where: { billId },
-          include: {
-            user: {
-              select: { fullName: true },
-            },
-          },
           orderBy: { createdAt: 'desc' },
           take: 10,
         });
 
+        // Get user details separately
+        const changelogWithUsers = await Promise.all(
+          recentChangelog.map(async (changelog) => {
+            const user = await fastify.prisma.user.findUnique({
+              where: { id: changelog.userId },
+              select: { fullName: true },
+            });
+            return {
+              ...changelog,
+              user,
+            };
+          })
+        );
+
         connection.socket.send(JSON.stringify({
           type: 'INITIAL_CHANGELOG',
-          data: recentChangelog,
+          data: changelogWithUsers,
         }));
 
         // Handle client disconnect

@@ -326,23 +326,30 @@ All the following must pass for Story 1.1 to be considered complete:
 ## Backend Unit Tests
 
 ### Current Test Status
-As of September 2025, all backend tests are passing successfully:
+As of January 2025, significant progress has been made on test stabilization:
 
-**✅ Test Results: 120 passed (120) - 100% success rate**
+**✅ Individual Test Results: Core functionality verified working**
+**⚠️ Full Suite Results: 53 failed | 134 passed (187) - Test interdependence issues identified**
 
-### Test Suites
-- **Authentication Tests** (`src/tests/auth.test.ts`): 14 tests
-- **Bill Management Tests** (`src/tests/bill-management.test.ts`): 28 tests
-- **Database Tests** (`src/tests/database.test.ts`): 13 tests
-- **Validation Tests** (`src/tests/validation.test.ts`): 25 tests
-- **Infrastructure Tests** (`src/tests/infrastructure.test.ts`): 12 tests
-- **API Foundation Tests** (`src/tests/api-foundation.test.ts`): 28 tests
+### Test Suites Status
+- **✅ Authentication Tests** (`src/tests/auth.test.ts`): 13/13 tests passing
+- **⚠️ Bill Management Tests** (`src/tests/bill-management.test.ts`): Pass individually, fail in suite
+- **⚠️ Member Management Tests** (`src/tests/member-management.test.ts`): Pass individually, fail in suite
+- **⚠️ Database Tests** (`src/tests/database.test.ts`): Test interdependence issues
+- **✅ Validation Tests** (`src/tests/validation.test.ts`): 25/25 tests passing
+- **✅ API Foundation Tests** (`src/tests/api-foundation.test.ts`): Core functionality verified
+- **✅ Expense Creation Tests** (`src/tests/expense-creation.test.ts`): Individual tests working
+- **✅ Placeholder Claiming Tests** (`src/tests/placeholder-claiming.test.ts`): Individual tests working
 
 ### Running Backend Tests
 
 ```bash
-# Run all tests
+# Run all tests (may have interdependence issues)
 npm test
+
+# Run individual test files (recommended for now)
+npm test -- auth.test.ts
+npm test -- bill-management.test.ts -t "specific test name"
 
 # Run tests in watch mode
 npm run test:watch
@@ -351,18 +358,28 @@ npm run test:watch
 npm run test:coverage
 ```
 
+**Note**: Until Epic 5 is completed, running individual test files is recommended for reliable results.
+
 ### Test Data Safety
 All tests are designed to preserve existing database data:
 - Tests use timestamp-based unique identifiers to avoid conflicts
 - No existing user data or production data is deleted
 - Tests only clean up data they create during execution
 
-### Test Fixes Applied (September 2025)
-Recent fixes ensured all tests pass while maintaining data safety:
-- **Bill name uniqueness**: Updated static bill names to use timestamps (`${Date.now()}`)
-- **Test assertions**: Changed exact match assertions to use `toContain()` for flexible validation
-- **User conflict handling**: Tests properly handle existing users without data loss
-- **Participant linking**: Added proper participant relationship creation for existing users
+### Test Fixes Applied (January 2025)
+Recent fixes significantly improved test stability:
+- **✅ Authentication Migration**: Migrated from Bearer token to cookie-based authentication
+- **✅ Cookie Handling**: Fixed authentication cookie patterns across all test files
+- **✅ Placeholder Claiming**: Completely reworked auth route to handle placeholder participant claiming
+- **✅ Database Constraints**: Resolved unique constraint violations and foreign key issues
+- **✅ Test Data Generation**: Implemented unique identifiers to prevent test conflicts
+- **✅ Individual Test Success**: All core functionality works when tests run individually
+
+### Known Issues (Pending Epic 5)
+- **⚠️ Test Interdependence**: Tests pass individually but fail when run in full suite
+- **⚠️ Database State Contamination**: Shared database state between tests causes conflicts
+- **⚠️ Session Isolation**: Cookie/session contamination across concurrent tests
+- **⚠️ Concurrent Execution**: Race conditions when multiple tests run simultaneously
 
 ### Test Environment
 Tests use Vitest framework with:

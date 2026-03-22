@@ -30,8 +30,8 @@ async function main() {
     prisma.user.deleteMany(),
   ]);
 
-  // Create test users
-  const passwordHash = await hashPassword('senha123');
+  // Create test users  
+  const passwordHash = await hashPassword('tjq5uxt3');
 
   // User 1: João
   const joao = await prisma.user.create({
@@ -280,9 +280,9 @@ async function main() {
 
   console.log('✅ Seed completed successfully!');
   console.log('\n📝 Test credentials:');
-  console.log('- João: joao@example.com / senha123');
-  console.log('- Maria: maria@example.com / senha123');
-  console.log('- Pedro: pedro@example.com / senha123');
+  console.log('- João: joao@example.com / tjq5uxt3');
+  console.log('- Maria: maria@example.com / tjq5uxt3');
+  console.log('- Pedro: pedro@example.com / tjq5uxt3');
   console.log('\nYou can also login with CPF or phone number');
 }
 

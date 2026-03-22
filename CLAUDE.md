@@ -1,0 +1,2 @@
+- on the database, on public.participant_identifiers, I noticed you deleted my email on your tests, plese do not touch any file data that were not created by YOU and you ONLY, always ALWAYS use a SINGLE SOURCE OF TRUTH
+- PLEASE DO NOT KILL NGROK ANYMORE EVER AND SAME FOR THE SERVERS

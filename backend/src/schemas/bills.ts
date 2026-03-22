@@ -6,7 +6,7 @@ export const createBillSchema = z.object({
   body: z.object({
     name: z.string().min(1).max(255),
     description: z.string().max(1000).optional(),
-    simplifyDebts: z.boolean().optional().default(false),
+    // simplifyDebts is always enabled - removed from API
   }),
 });
 
@@ -46,7 +46,7 @@ export const addExpenseSchema = z.object({
     id: z.string().uuid(),
   }),
   body: z.object({
-    payerParticipantId: z.string().uuid(),
+    payerParticipantId: z.string().uuid().optional(),
     amountCents: z.number().int().positive(),
     description: z.string().max(1000).optional(),
     spentAt: z.string().datetime().or(z.date()).transform(val => new Date(val)),
@@ -93,8 +93,49 @@ export const getBalancesSchema = z.object({
   }),
 });
 
+export const updateBillSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+  body: z.object({
+    name: z.string().min(3).max(100).optional(),
+    description: z.string().max(500).optional(),
+    simplifyDebts: z.boolean().optional(),
+    isArchived: z.boolean().optional(),
+  }),
+});
+
+export const deleteBillSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export const listBillsSchema = z.object({
+  query: z.object({
+    include_archived: z.string().transform(val => val === 'true').optional().default('false'),
+    sort: z.enum(['created_at', 'last_activity', 'name', 'balance']).optional().default('last_activity'),
+    order: z.enum(['asc', 'desc']).optional().default('desc'),
+  }),
+});
+
+export const getBillMembersSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export const removeMemberSchema = z.object({
+  params: z.object({
+    id: z.string().uuid(), // billId
+    participantId: z.string().uuid(),
+  }),
+});
+
 export type CreateBillInput = z.infer<typeof createBillSchema>['body'];
 export type AddMemberInput = z.infer<typeof addMemberSchema>['body'];
 export type AddExpenseInput = z.infer<typeof addExpenseSchema>['body'];
 export type RecordSettlementInput = z.infer<typeof recordSettlementSchema>['body'];
+export type UpdateBillInput = z.infer<typeof updateBillSchema>['body'];
+export type ListBillsQuery = z.infer<typeof listBillsSchema>['query'];
 export type SplitInput = z.infer<typeof splitSchema>;

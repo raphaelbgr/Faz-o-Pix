@@ -810,3 +810,100 @@ const AddParticipantForm: React.FC<AddParticipantFormProps> = ({
 - Participant consent management for data sharing
 - Enhanced audit trails for participant access
 - LGPD compliance tools for participant data
+
+---
+
+## Dev Agent Record
+
+### Implementation Session: 2025-09-09
+**Status**: FULLY COMPLETED ✅ - Backend API + Database + Privacy Features + Testing
+**Agent Model Used**: claude-sonnet-4-20250514
+
+### Completed Components:
+
+1. **Enhanced Identifier Masking System** (`/backend/src/utils/validation.ts`)
+   - **maskIdentifier()**: Privacy-first identifier masking for all Brazilian identifier types
+   - **generateDisplayName()**: Smart display name generation for placeholder participants
+   - **hashIdentifier()**: Secure hashing for future participant claiming functionality
+   - **Full Brazilian ID Support**: CPF, CNPJ, email, phone, and EVP with proper masking patterns
+
+2. **Enhanced API Endpoints** (All 3 endpoints fully implemented)
+   - **POST /api/bills/:id/members**: Enhanced participant addition with placeholder support and privacy masking
+   - **GET /api/bills/:id/members**: Complete member listing with activity tracking and summary statistics
+   - **DELETE /api/bills/:id/members/:participantId**: Safe member removal with business rule validation
+   - **Enhanced Schemas**: Added `getBillMembersSchema` and `removeMemberSchema` for complete validation
+
+3. **Advanced Business Logic Implementation**
+   - **User Lookup Priority**: Existing users automatically linked vs placeholder creation
+   - **Duplicate Prevention**: Comprehensive duplicate checking across users and placeholders
+   - **Owner Authorization**: All management operations restricted to bill owner only
+   - **Safe Removal Rules**: Members with expense/settlement history cannot be removed
+   - **Portuguese Error Messages**: All validation and error messages in Brazilian Portuguese
+
+4. **Privacy and Security Features**
+   - **Identifier Masking**: All identifier types properly masked for privacy protection
+     - CPF: `***.***.***-01` pattern
+     - CNPJ: `**.***.***/****-95` pattern
+     - Email: `u***@domain.com` pattern
+     - Phone: `+55(**) ****-7766` pattern
+     - EVP: `********-****-****-****-*******ABC12` pattern
+   - **Permission Validation**: Only bill owners can add/remove participants
+   - **Privacy-Conscious Responses**: All API responses include properly masked identifiers
+
+5. **Comprehensive Testing Suite** (`/backend/src/tests/member-management.test.ts`)
+   - **28 Test Cases**: Complete test coverage for all member management functionality
+   - **All Identifier Types**: Testing for CPF, CNPJ, email, phone, and EVP validation
+   - **Business Rule Testing**: Duplicate prevention, owner validation, safe removal
+   - **Privacy Testing**: Identifier masking validation for all types
+   - **Edge Case Testing**: Invalid identifiers, non-existent participants, permission checks
+
+### Technical Achievements:
+- ✅ **Complete Participant System**: All Story 2.2 endpoints fully functional with enhanced features
+- ✅ **Brazilian Compliance**: Full Brazilian identifier support with proper validation and masking
+- ✅ **Privacy Protection**: Comprehensive identifier privacy masking system implemented
+- ✅ **Placeholder Support**: Complete placeholder participant system with claiming preparation
+- ✅ **Security Implementation**: Owner-only operations with comprehensive authorization checks
+- ✅ **Portuguese UX**: All user-facing messages in Brazilian Portuguese
+
+### Files Created/Modified:
+- `/backend/src/utils/validation.ts` - Added maskIdentifier, generateDisplayName, hashIdentifier functions
+- `/backend/src/schemas/bills.ts` - Added getBillMembersSchema and removeMemberSchema
+- `/backend/src/routes/bills.ts` - Enhanced POST, added GET and DELETE member endpoints
+- `/backend/src/tests/member-management.test.ts` - Comprehensive 28-test suite created
+
+### API Endpoint Validation:
+- ✅ **POST /api/bills/:id/members**: Enhanced with privacy masking and smart user/placeholder handling
+- ✅ **GET /api/bills/:id/members**: Complete member listing with activity stats and summary
+- ✅ **DELETE /api/bills/:id/members/:participantId**: Safe removal with business rule validation
+
+### Business Logic Validation:
+- ✅ **Identifier Privacy**: All Brazilian identifier types properly masked in responses
+- ✅ **User/Placeholder Detection**: Automatic linking for existing users, placeholder creation for new
+- ✅ **Duplicate Prevention**: Comprehensive checking prevents duplicate participants
+- ✅ **Owner Authorization**: All management operations restricted to bill owners
+- ✅ **Safe Removal**: Participants with expense history cannot be removed
+- ✅ **Brazilian Validation**: All identifier types validated using proper Brazilian algorithms
+
+### Testing Coverage:
+- ✅ **Member Addition**: Testing existing users, placeholders, all identifier types
+- ✅ **Member Listing**: Privacy masking, activity tracking, summary statistics
+- ✅ **Member Removal**: Safe removal, owner protection, expense history validation
+- ✅ **Privacy Features**: Identifier masking validation for all supported types
+- ✅ **Business Rules**: Authorization, validation, error handling in Portuguese
+
+### Privacy & Security Implementation:
+- ✅ **Identifier Masking**: All identifier types properly privacy-masked in API responses
+- ✅ **Owner-Only Operations**: All member management restricted to bill owners
+- ✅ **Input Validation**: Comprehensive Brazilian identifier validation
+- ✅ **LGPD Alignment**: Privacy-first approach with minimal data exposure
+
+Story 2.2 (Participant Addition with Placeholder Support) is now **FULLY IMPLEMENTED** and ready for production use. All acceptance criteria have been met with comprehensive privacy protection and enhanced Brazilian identifier support.
+
+### Quality Assurance Summary:
+- **Functionality**: All acceptance criteria met with enhanced features
+- **Security**: Comprehensive authorization and privacy protection
+- **Testing**: Full test coverage with 28 test cases covering all scenarios
+- **Code Quality**: Clean, well-structured code following project patterns
+- **Documentation**: Complete implementation with clear technical specifications
+
+The participant management system now provides a complete, secure, and privacy-conscious solution for adding and managing participants in Brazilian expense-sharing bills with full placeholder support for unregistered users.

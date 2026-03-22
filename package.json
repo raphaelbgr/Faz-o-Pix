@@ -29,9 +29,15 @@
     "setup": "npm install && npm run db:generate",
     "clean": "rm -rf node_modules backend/node_modules frontend/node_modules shared/node_modules",
     "clean:build": "rm -rf backend/dist frontend/.next shared/dist",
-    "health": "curl -f http://localhost:3001/api/health && curl -f http://localhost:3000"
+    "health": "curl -f http://localhost:3001/api/health && curl -f http://localhost:3000",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:visual": "playwright test visual-testing",
+    "screenshot": "playwright test --update-snapshots",
+    "dev:visual": "node scripts/dev-visual-check.js"
   },
   "devDependencies": {
+    "@playwright/test": "^1.55.0",
     "concurrently": "^8.2.2"
   },
   "engines": {
@@ -50,5 +56,10 @@
     "bill-splitting"
   ],
   "author": "Faz-o-Pix Team",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "@swc/helpers": "^0.5.17",
+    "playwright": "^1.55.0",
+    "puppeteer": "^24.19.0"
+  }
 }

@@ -155,9 +155,13 @@ describe('Story 1.3: Fastify API Foundation', () => {
     })
 
     it('should validate Brazilian CNPJ correctly', async () => {
-      // Clean up test data
-      await app.prisma.identifier.deleteMany({ where: { value: '11222333000181' } })
-      await app.prisma.user.deleteMany({ where: { fullName: 'Test CNPJ User' } })
+      // Clean up test data more comprehensively
+      const testUser = await app.prisma.user.findFirst({ where: { fullName: 'Test CNPJ User' } })
+      if (testUser) {
+        await app.prisma.identifier.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.session.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.user.deleteMany({ where: { id: testUser.id } })
+      }
       
       const validCNPJResponse = await app.inject({
         method: 'POST',
@@ -195,9 +199,13 @@ describe('Story 1.3: Fastify API Foundation', () => {
     })
 
     it('should validate Brazilian phone numbers correctly', async () => {
-      // Clean up test data
-      await app.prisma.identifier.deleteMany({ where: { value: '11999887766' } })
-      await app.prisma.user.deleteMany({ where: { fullName: 'Test Phone User' } })
+      // Clean up test data more comprehensively
+      const testUser = await app.prisma.user.findFirst({ where: { fullName: 'Test Phone User' } })
+      if (testUser) {
+        await app.prisma.identifier.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.session.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.user.deleteMany({ where: { id: testUser.id } })
+      }
       
       const validPhoneResponse = await app.inject({
         method: 'POST',
@@ -218,9 +226,13 @@ describe('Story 1.3: Fastify API Foundation', () => {
     })
 
     it('should validate email addresses correctly', async () => {
-      // Clean up test data
-      await app.prisma.identifier.deleteMany({ where: { value: 'valid@example.com' } })
-      await app.prisma.user.deleteMany({ where: { fullName: 'Test Email User' } })
+      // Clean up test data more comprehensively
+      const testUser = await app.prisma.user.findFirst({ where: { fullName: 'Test Email User' } })
+      if (testUser) {
+        await app.prisma.identifier.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.session.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.user.deleteMany({ where: { id: testUser.id } })
+      }
       
       const validEmailResponse = await app.inject({
         method: 'POST',
@@ -258,9 +270,13 @@ describe('Story 1.3: Fastify API Foundation', () => {
     })
 
     it('should validate EVP (random keys) correctly', async () => {
-      // Clean up test data
-      await app.prisma.identifier.deleteMany({ where: { value: '550e8400-e29b-41d4-a716-446655440000' } })
-      await app.prisma.user.deleteMany({ where: { fullName: 'Test EVP User' } })
+      // Clean up test data more comprehensively
+      const testUser = await app.prisma.user.findFirst({ where: { fullName: 'Test EVP User' } })
+      if (testUser) {
+        await app.prisma.identifier.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.session.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.user.deleteMany({ where: { id: testUser.id } })
+      }
       
       const validEVPResponse = await app.inject({
         method: 'POST',
@@ -335,9 +351,13 @@ describe('Story 1.3: Fastify API Foundation', () => {
 
   describe('LGPD Audit Logging Framework', () => {
     it('should log user actions for LGPD compliance', async () => {
-      // Clean up test data
-      await app.prisma.identifier.deleteMany({ where: { value: 'lgpd.test@example.com' } })
-      await app.prisma.user.deleteMany({ where: { fullName: 'LGPD Test User' } })
+      // Clean up test data more comprehensively
+      const testUser = await app.prisma.user.findFirst({ where: { fullName: 'LGPD Test User' } })
+      if (testUser) {
+        await app.prisma.identifier.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.session.deleteMany({ where: { userId: testUser.id } })
+        await app.prisma.user.deleteMany({ where: { id: testUser.id } })
+      }
       
       // Create a user to generate audit logs
       const signupResponse = await app.inject({
@@ -405,6 +425,7 @@ describe('Story 1.3: Fastify API Foundation', () => {
       })
 
       const sessionCookie = loginResponse.headers['set-cookie']
+      expect(sessionCookie).toBeDefined()
 
       // Access user data (should generate audit log)
       const meResponse = await app.inject({

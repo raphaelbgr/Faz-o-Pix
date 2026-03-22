@@ -12,6 +12,8 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "test": "vitest",
+    "test:run": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint src --ext .ts",
     "typecheck": "tsc --noEmit"
   },
@@ -27,6 +29,7 @@
     "@fastify/websocket": "^10.0.1",
     "@prisma/client": "^5.9.1",
     "argon2": "^0.31.2",
+    "cpf-cnpj-validator": "^1.0.3",
     "dotenv": "^17.2.2",
     "fastify": "^4.26.0",
     "fastify-plugin": "^4.5.1",

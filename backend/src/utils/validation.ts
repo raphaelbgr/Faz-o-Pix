@@ -1,54 +1,12 @@
 import { IdentifierType } from '@prisma/client';
+import { cpf, cnpj } from 'cpf-cnpj-validator';
 
-export function validateCPF(cpf: string): boolean {
-  const cleaned = cpf.replace(/\D/g, '');
-  
-  if (cleaned.length !== 11) return false;
-  if (/^(\d)\1+$/.test(cleaned)) return false;
-  
-  let sum = 0;
-  for (let i = 0; i < 9; i++) {
-    sum += parseInt(cleaned[i]!) * (10 - i);
-  }
-  let digit = 11 - (sum % 11);
-  if (digit >= 10) digit = 0;
-  if (digit !== parseInt(cleaned[9]!)) return false;
-  
-  sum = 0;
-  for (let i = 0; i < 10; i++) {
-    sum += parseInt(cleaned[i]!) * (11 - i);
-  }
-  digit = 11 - (sum % 11);
-  if (digit >= 10) digit = 0;
-  if (digit !== parseInt(cleaned[10]!)) return false;
-  
-  return true;
+export function validateCPF(cpfValue: string): boolean {
+  return cpf.isValid(cpfValue);
 }
 
-export function validateCNPJ(cnpj: string): boolean {
-  const cleaned = cnpj.replace(/\D/g, '');
-  
-  if (cleaned.length !== 14) return false;
-  if (/^(\d)\1+$/.test(cleaned)) return false;
-  
-  const weights1 = [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  const weights2 = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2];
-  
-  let sum = 0;
-  for (let i = 0; i < 12; i++) {
-    sum += parseInt(cleaned[i]!) * weights1[i]!;
-  }
-  let digit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-  if (digit !== parseInt(cleaned[12]!)) return false;
-  
-  sum = 0;
-  for (let i = 0; i < 13; i++) {
-    sum += parseInt(cleaned[i]!) * weights2[i]!;
-  }
-  digit = sum % 11 < 2 ? 0 : 11 - (sum % 11);
-  if (digit !== parseInt(cleaned[13]!)) return false;
-  
-  return true;
+export function validateCNPJ(cnpjValue: string): boolean {
+  return cnpj.isValid(cnpjValue);
 }
 
 export function normalizePhone(phone: string): string {
@@ -96,7 +54,7 @@ export function detectIdentifierType(identifier: string): IdentifierType | null 
     return 'PIX_CNPJ';
   }
   
-  // Check phone (10-11 digits Brazilian, or with country code)
+  // Check phone (10-11 digits Brazilian, or with country code) - always return PIX_PHONE for consistency
   if (cleaned.length >= 10 && cleaned.length <= 15) {
     try {
       normalizePhone(identifier);
@@ -106,7 +64,7 @@ export function detectIdentifierType(identifier: string): IdentifierType | null 
     }
   }
   
-  // Check email
+  // Check email - always return PIX_EMAIL for consistency
   if (identifier.includes('@') && validateEmail(identifier)) {
     return 'PIX_EMAIL';
   }
@@ -122,19 +80,26 @@ export function detectIdentifierType(identifier: string): IdentifierType | null 
 export function normalizeIdentifier(type: IdentifierType, value: string): string {
   switch (type) {
     case 'PIX_CPF':
+      return cpf.strip(value); // Use library's strip function
+    
     case 'PIX_CNPJ':
-      return value.replace(/\D/g, '');
+      return cnpj.strip(value); // Use library's strip function
     
     case 'PIX_PHONE':
-    case 'PHONE':
       return normalizePhone(value);
     
     case 'PIX_EMAIL':
-    case 'EMAIL':
       return value.toLowerCase().trim();
     
     case 'PIX_EVP':
       return value.toLowerCase();
+    
+    // Maintain backward compatibility but prefer PIX_ versions
+    case 'PHONE':
+      return normalizePhone(value);
+    
+    case 'EMAIL':
+      return value.toLowerCase().trim();
     
     default:
       return value.trim();
@@ -150,7 +115,6 @@ export function validateIdentifier(type: IdentifierType, value: string): boolean
       return validateCNPJ(value);
     
     case 'PIX_PHONE':
-    case 'PHONE':
       try {
         normalizePhone(value);
         return true;
@@ -159,11 +123,22 @@ export function validateIdentifier(type: IdentifierType, value: string): boolean
       }
     
     case 'PIX_EMAIL':
-    case 'EMAIL':
       return validateEmail(value);
     
     case 'PIX_EVP':
       return validateEVP(value);
+    
+    // Maintain backward compatibility but prefer PIX_ versions
+    case 'PHONE':
+      try {
+        normalizePhone(value);
+        return true;
+      } catch {
+        return false;
+      }
+    
+    case 'EMAIL':
+      return validateEmail(value);
     
     default:
       return false;
@@ -185,4 +160,93 @@ export function parseCurrency(value: string): number {
     throw new Error('Invalid currency value');
   }
   return Math.round(reais * 100);
+}
+
+export function maskIdentifier(value: string, type: IdentifierType): string {
+  switch (type) {
+    case 'PIX_CPF': {
+      // 12345678901 -> ***.***.***-01
+      const cpf = value.replace(/\D/g, '');
+      if (cpf.length === 11) {
+        return `***.***.*${cpf.slice(-3)}-${cpf.slice(-2)}`;
+      }
+      return `***.***.***-${cpf.slice(-2) || '**'}`;
+    }
+    
+    case 'PIX_CNPJ': {
+      // 12345678000195 -> **.***.***/****-95
+      const cnpj = value.replace(/\D/g, '');
+      if (cnpj.length === 14) {
+        return `**.***.***/****-${cnpj.slice(-2)}`;
+      }
+      return `**.***.***/****-${cnpj.slice(-2) || '**'}`;
+    }
+    
+    case 'PIX_EMAIL':
+    case 'EMAIL': {
+      // usuario@exemplo.com -> u***@exemplo.com
+      const [local, domain] = value.split('@');
+      if (local && domain) {
+        return `${local[0] || ''}***@${domain}`;
+      }
+      return 'u***@***.***';
+    }
+    
+    case 'PIX_PHONE':
+    case 'PHONE': {
+      // +5511999887766 -> +55(**) 9****-7766
+      const phone = value.replace(/\D/g, '');
+      if (phone.length >= 10) {
+        const countryCode = phone.startsWith('55') ? '+55' : '+**';
+        const lastFour = phone.slice(-4);
+        return `${countryCode}(**) ****-${lastFour}`;
+      }
+      return '+**(**) ****-****';
+    }
+    
+    case 'PIX_EVP': {
+      // UUID -> ********-****-****-****-*******ABC12
+      if (value.length >= 36) {
+        return `********-****-****-****-*******${value.slice(-5)}`;
+      }
+      return '********-****-****-****-************';
+    }
+    
+    default:
+      return '***';
+  }
+}
+
+export function generateDisplayName(identifierValue: string, identifierType: IdentifierType): string {
+  switch (identifierType) {
+    case 'PIX_CPF':
+      return `CPF ${maskIdentifier(identifierValue, identifierType)}`;
+    
+    case 'PIX_CNPJ':
+      return `CNPJ ${maskIdentifier(identifierValue, identifierType)}`;
+    
+    case 'PIX_EMAIL':
+    case 'EMAIL':
+      return maskIdentifier(identifierValue, identifierType);
+    
+    case 'PIX_PHONE':
+    case 'PHONE':
+      return maskIdentifier(identifierValue, identifierType);
+    
+    case 'PIX_EVP':
+      return `Chave PIX ${maskIdentifier(identifierValue, identifierType)}`;
+    
+    default:
+      return 'Participante';
+  }
+}
+
+export async function hashIdentifier(normalizedValue: string): Promise<string> {
+  const crypto = await import('crypto');
+  const salt = process.env.IDENTIFIER_SALT || 'faz-o-pix-salt-2024';
+  
+  return crypto
+    .createHash('sha256')
+    .update(`${salt}:${normalizedValue}`)
+    .digest('hex');
 }

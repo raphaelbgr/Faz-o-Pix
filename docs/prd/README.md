@@ -15,6 +15,7 @@ Comprehensive implementation guides for each major development phase:
   - Brazilian identifier validation and user registration
   - Multi-identifier authentication system
   - Mobile-responsive authentication UI
+  - Database constraint optimization for easier deletion
 
 - **[epic-2-bills.md](./epic-2-bills.md)** - Bill Management & Participants
   - Bill creation and management functionality
@@ -36,6 +37,13 @@ Comprehensive implementation guides for each major development phase:
   - Payment suggestions and optimization UI
   - Settlement history and audit trail
   - Dispute resolution support
+
+- **[epic-5-testing-infrastructure.md](./epic-5-testing-infrastructure.md)** - Test Infrastructure & Quality Assurance
+  - Database mocking and test isolation
+  - Comprehensive test suite stabilization
+  - Performance and load testing framework
+  - Automated quality assurance pipeline
+  - Production monitoring and observability
 
 ### Reference Documents
 Essential reference materials for development:
@@ -70,6 +78,8 @@ Epic 2 (Bills)
 Epic 3 (Expenses)
     ↓ Dependencies
 Epic 4 (Settlements)
+    ↓ Dependencies
+Epic 5 (Testing Infrastructure)
 ```
 
 Each epic builds upon the previous one, with clearly defined interfaces and handoff points.
@@ -108,6 +118,14 @@ Each epic builds upon the previous one, with clearly defined interfaces and hand
 - Dispute resolution support
 - Export functionality (PDF/CSV)
 
+### Epic 5: Testing Infrastructure & Quality Assurance
+- Database mocking and test isolation framework
+- Comprehensive test suite stabilization
+- Performance benchmarking and load testing
+- CI/CD pipeline optimization
+- Production monitoring and alerting
+- Automated quality gates and reporting
+
 ## Technical Specifications
 
 ### Technology Stack
@@ -137,7 +155,7 @@ Each epic builds upon the previous one, with clearly defined interfaces and hand
 3. **Bills**: Implement bill and participant management
 4. **Expenses**: Add expense tracking and splitting logic
 5. **Settlements**: Complete with payment optimization
-6. **Testing**: Comprehensive testing at each epic completion
+6. **Testing Infrastructure**: Stabilize test suite and implement quality gates
 7. **Deployment**: Production deployment with monitoring
 
 ## Quality Assurance

@@ -15,7 +15,7 @@ describe('Brazilian Validation Utils', () => {
   describe('validateCPF', () => {
     it('should validate correct CPF', () => {
       expect(validateCPF('11144477735')).toBe(true)
-      expect(validateCPF('12345678909')).toBe(true)
+      expect(validateCPF('15435542022')).toBe(true)
     })
 
     it('should reject invalid CPF', () => {

@@ -246,6 +246,45 @@ Establish the core project infrastructure including Docker setup, database schem
 - E2E tests for critical user journeys
 - Performance tests for concurrent access
 
+---
+
+### Story 1.7: Database Constraint Optimization
+
+**As a developer,**  
+**I want optimized database relationship constraints to make deletion operations easier and more reliable,**  
+**so that I can avoid foreign key constraint violations and improve test cleanup procedures.**
+
+#### Acceptance Criteria
+1. Consistent cascade behavior across all related entities
+2. Simplified deletion order without circular dependencies
+3. Soft delete support for entities with complex relationships
+4. Test-friendly schema with easier cleanup procedures
+5. Maintained data integrity through application logic
+6. Backward compatibility during migration
+7. Performance benchmarks met after optimization
+
+#### Technical Requirements
+- Soft delete implementation for Participant and BillMember models
+- Updated foreign key constraints with SetNull behavior
+- Application-level validation for data integrity
+- Comprehensive migration strategy with rollback procedures
+- Optimized test cleanup without foreign key dependencies
+
+#### Database Changes
+- Add `isDeleted` and `deletedAt` fields to Participant and BillMember
+- Remove problematic `onDelete: Cascade` constraints
+- Implement `onDelete: SetNull` for UserParticipantLink relationships
+- Add proper indexes for soft delete queries
+
+#### Definition of Done
+- All foreign key constraints optimized for easier deletion
+- Soft delete implementation complete and tested
+- Test cleanup procedures simplified and reliable
+- Migration scripts tested and documented
+- Application logic updated to handle new constraints
+- Performance benchmarks met
+- Documentation updated with new patterns
+
 ## Risks and Mitigations
 
 | Risk | Impact | Mitigation |

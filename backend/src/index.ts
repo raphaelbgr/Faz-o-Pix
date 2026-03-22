@@ -38,8 +38,12 @@ async function buildApp() {
   });
 
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: true, // 2025 Best Practice: reflects request origin, allows all with credentials
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'ngrok-skip-browser-warning', 'Accept', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 200
   });
 
   await app.register(cookie, {

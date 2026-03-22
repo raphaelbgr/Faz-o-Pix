@@ -5,6 +5,7 @@ module.exports = {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
@@ -27,6 +28,30 @@ module.exports = {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      animation: {
+        'float': 'float 6s ease-in-out infinite',
+        'glow-light': 'glow-light 2s ease-in-out infinite alternate',
+        'glow-dark': 'glow-dark 2s ease-in-out infinite alternate',
+        'theme-transition': 'theme-transition 0.3s ease-in-out',
+      },
+      keyframes: {
+        float: {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
+        },
+        'glow-light': {
+          'from': { boxShadow: '0 0 20px rgba(34, 197, 94, 0.3)' },
+          'to': { boxShadow: '0 0 30px rgba(34, 197, 94, 0.6)' },
+        },
+        'glow-dark': {
+          'from': { boxShadow: '0 0 20px rgba(52, 211, 153, 0.4)' },
+          'to': { boxShadow: '0 0 30px rgba(52, 211, 153, 0.8)' },
+        },
+        'theme-transition': {
+          'from': { opacity: '0.8' },
+          'to': { opacity: '1' },
+        }
+      }
     },
   },
   plugins: [],

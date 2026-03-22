@@ -4,21 +4,92 @@
 
 @layer base {
   :root {
+    /* Backgrounds */
     --background: 0 0% 100%;
+    --background-secondary: 0 0% 98%;
+    --background-glass: 0 0% 100% / 0.1;
+    --background-card: 0 0% 100%;
+    --background-input: 0 0% 100%;
+    
+    /* Text Colors */
     --foreground: 222.2 84% 4.9%;
+    --foreground-muted: 215.4 16.3% 46.9%;
+    --foreground-secondary: 215.3 19.3% 34.9%;
+    
+    /* Interactive Elements */
     --border: 214.3 31.8% 91.4%;
+    --border-input: 214.3 31.8% 91.4%;
+    --border-focus: 142.1 76.2% 36.3%;
+    
+    /* Glass Effects */
+    --glass-background: 255 255 255 / 0.05;
+    --glass-border: 255 255 255 / 0.1;
+    --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    
+    /* PIX Brand Colors - Light Mode */
+    --pix-primary: 142.1 76.2% 36.3%; /* #16a34a */
+    --pix-hover: 142.1 70.6% 45.3%;   /* #22c55e */
+    --pix-glow: 142.1 76.2% 36.3% / 0.3;
   }
 
   .dark {
+    /* Backgrounds */
     --background: 222.2 84% 4.9%;
+    --background-secondary: 217.2 32.6% 8.5%;
+    --background-glass: 0 0% 0% / 0.2;
+    --background-card: 222.2 84% 8.9%;
+    --background-input: 217.2 32.6% 12.5%;
+    
+    /* Text Colors */
     --foreground: 210 40% 98%;
+    --foreground-muted: 215 20.2% 65.1%;
+    --foreground-secondary: 215 25.0% 71.0%;
+    
+    /* Interactive Elements */
     --border: 217.2 32.6% 17.5%;
+    --border-input: 217.2 32.6% 20.5%;
+    --border-focus: 142.1 76.2% 46.3%;
+    
+    /* Glass Effects */
+    --glass-background: 0 0 0 / 0.2;
+    --glass-border: 255 255 255 / 0.05;
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+    
+    /* PIX Brand Colors - Dark Mode */
+    --pix-primary: 142.1 76.2% 46.3%; /* Brighter green for dark */
+    --pix-hover: 142.1 76.2% 56.3%;
+    --pix-glow: 142.1 76.2% 46.3% / 0.5;
+  }
+}
+
+/* Glass Morphism Utilities */
+@layer utilities {
+  .glass-card {
+    background: hsl(var(--glass-background));
+    backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid hsl(var(--glass-border));
+    box-shadow: var(--glass-shadow);
+  }
+  
+  .input-glass {
+    background: hsl(var(--background-input));
+    border: 1px solid hsl(var(--border-input));
+    transition: all 0.3s ease;
+  }
+  
+  .input-glass:focus {
+    border-color: hsl(var(--border-focus));
+    box-shadow: 0 0 0 3px hsl(var(--pix-glow));
+  }
+  
+  .theme-transition {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
   }
 }
 
 @layer base {
   * {
-    @apply border-border;
+    @apply border-border theme-transition;
   }
   body {
     @apply bg-background text-foreground;

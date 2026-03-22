@@ -29,32 +29,49 @@ export class ChangelogService {
         description: entry.description,
         metadata: entry.metadata,
       },
-      include: {
-        user: {
-          select: { fullName: true },
-        },
-      },
     });
 
-    // Broadcast to WebSocket clients
-    this.fastify.broadcastToBill(entry.billId, {
-      type: 'BILL_UPDATED',
-      action: entry.action,
-      data: changelog,
+    // Get user details separately
+    const user = await this.prisma.user.findUnique({
+      where: { id: entry.userId },
+      select: { fullName: true },
     });
+
+    // Broadcast to WebSocket clients (if websocket plugin is loaded)
+    if (this.fastify.broadcastToBill) {
+      this.fastify.broadcastToBill(entry.billId, {
+        type: 'BILL_UPDATED',
+        action: entry.action,
+        data: {
+          ...changelog,
+          user,
+        },
+      });
+    }
   }
 
   async getRecentChangelog(billId: string, limit = 20) {
-    return this.prisma.billChangelog.findMany({
+    const changelogs = await this.prisma.billChangelog.findMany({
       where: { billId },
-      include: {
-        user: {
-          select: { fullName: true },
-        },
-      },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
+
+    // Get user details for each changelog entry
+    const changelogsWithUsers = await Promise.all(
+      changelogs.map(async (changelog) => {
+        const user = await this.prisma.user.findUnique({
+          where: { id: changelog.userId },
+          select: { fullName: true },
+        });
+        return {
+          ...changelog,
+          user,
+        };
+      })
+    );
+
+    return changelogsWithUsers;
   }
 
   // Helper methods for different types of changes
