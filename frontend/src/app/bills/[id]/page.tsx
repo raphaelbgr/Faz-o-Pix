@@ -10,6 +10,7 @@ import { ChangelogPanel } from '@/components/ChangelogPanel'
 import { BalancePanel } from '@/components/BalancePanel'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AddExpenseModalV2 from '@/components/AddExpenseModalV2'
+import RecordSettlementModal from '@/components/RecordSettlementModal'
 import { useEffect, useState } from 'react'
 
 interface Bill {
@@ -67,6 +68,7 @@ export default function BillDetailPage() {
   const billId = params.id as string
   const [token, setToken] = useState<string | null>(null)
   const [showExpenseModal, setShowExpenseModal] = useState(false)
+  const [showSettlementModal, setShowSettlementModal] = useState(false)
 
   // Get JWT token from cookies
   useEffect(() => {
@@ -343,14 +345,22 @@ export default function BillDetailPage() {
             </div>
 
             {/* Settlements */}
-            {bill.settlements.length > 0 && (
-              <div className="glass-card p-6 animate-float">
-                <h2 className="text-lg font-medium text-[hsl(var(--foreground))] mb-6 flex items-center">
+            <div className="glass-card p-6 animate-float">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-lg font-medium text-[hsl(var(--foreground))] flex items-center">
                   <svg className="w-5 h-5 mr-2 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   Pagamentos
                 </h2>
+                <button
+                  onClick={() => setShowSettlementModal(true)}
+                  className="glass-card px-4 py-2 bg-green-500/20 hover:bg-green-500 text-green-600 hover:text-white transition-all duration-300 hover:glow text-sm"
+                >
+                  Registrar Pagamento
+                </button>
+              </div>
+              {bill.settlements.length > 0 ? (
                 <div className="space-y-4">
                   {bill.settlements.map((settlement) => (
                     <div 
@@ -395,8 +405,12 @@ export default function BillDetailPage() {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-[hsl(var(--foreground-muted))] text-sm">Nenhum pagamento registrado ainda</p>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Sidebar - Balances + Changelog */}
@@ -418,6 +432,27 @@ export default function BillDetailPage() {
           is_placeholder: !member.participant.userLink
         }))}
         onExpenseAdded={() => {
+          refetch()
+        }}
+      />
+
+      {/* Record Settlement Modal */}
+      <RecordSettlementModal
+        isOpen={showSettlementModal}
+        onClose={() => setShowSettlementModal(false)}
+        billId={billId}
+        participants={bill.members.map(member => ({
+          participant_id: member.participant.id,
+          display_name: member.participant.displayName || 'Participante',
+        }))}
+        suggestedDebts={
+          balances
+            ? (balances.simplifyEnabled && balances.simplified
+                ? balances.simplified.debts
+                : balances.raw.debts)
+            : []
+        }
+        onSettlementRecorded={() => {
           refetch()
         }}
       />
