@@ -159,11 +159,14 @@ export default async function healthRoutes(fastify: FastifyInstance) {
  */
 async function checkDatabaseConnection(prisma: PrismaClient): Promise<ServiceCheck> {
   const startTime = Date.now();
-  
+  const timeout = 3000; // 3 second timeout for DB check
+
   try {
-    // Test database connectivity with a simple query
-    await prisma.$queryRaw`SELECT 1 as test`;
-    
+    await Promise.race([
+      prisma.$queryRaw`SELECT 1 as test`,
+      new Promise((_, reject) => setTimeout(() => reject(new Error('Database check timed out')), timeout))
+    ]);
+
     return {
       name: 'database',
       status: 'connected',

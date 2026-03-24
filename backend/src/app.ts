@@ -1,6 +1,7 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import sensible from '@fastify/sensible';
@@ -34,7 +35,14 @@ export async function build() {
     contentSecurityPolicy: false, // We'll configure CSP per route as needed
   });
 
-  // CORS is configured in index.ts
+  await app.register(cors, {
+    origin: true,
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'ngrok-skip-browser-warning', 'Accept', 'Cookie'],
+    exposedHeaders: ['Set-Cookie'],
+    optionsSuccessStatus: 204
+  });
 
   await app.register(cookie, {
     secret: process.env.COOKIE_SECRET || 'dev_cookie_secret_min_32_characters_long',
