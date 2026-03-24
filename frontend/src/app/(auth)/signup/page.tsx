@@ -102,7 +102,7 @@ export default function SignupPage() {
   const handleIdentifierTypeChange = (index: number, newType: string) => {
     // Clear the value when type changes
     setValue(`identifiers.${index}.value`, '')
-    setValue(`identifiers.${index}.type`, newType)
+    setValue(`identifiers.${index}.type`, newType as SignupForm['identifiers'][number]['type'])
   }
 
   const onSubmit = async (data: SignupForm) => {
