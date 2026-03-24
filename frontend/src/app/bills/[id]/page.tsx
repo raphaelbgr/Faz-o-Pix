@@ -418,8 +418,7 @@ export default function BillDetailPage() {
           is_placeholder: !member.participant.userLink
         }))}
         onExpenseAdded={() => {
-          // Refetch bill data
-          window.location.reload()
+          refetch()
         }}
       />
     </div>
