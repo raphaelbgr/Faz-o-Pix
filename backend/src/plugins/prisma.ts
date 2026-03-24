@@ -10,12 +10,20 @@ declare module 'fastify' {
 
 const prismaPlugin: FastifyPluginAsync = async (fastify) => {
   const prisma = new PrismaClient({
-    log: process.env.NODE_ENV === 'development' 
+    log: process.env.NODE_ENV === 'development'
       ? ['query', 'info', 'warn', 'error']
       : ['error'],
   });
 
-  await prisma.$connect();
+  try {
+    await prisma.$connect();
+  } catch (err) {
+    if (process.env.NODE_ENV === 'test') {
+      fastify.log.warn('Database connection failed in test environment — DB-dependent routes will fail');
+    } else {
+      throw err;
+    }
+  }
 
   fastify.decorate('prisma', prisma);
 
