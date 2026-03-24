@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'react-hot-toast'
 
 export interface ChangelogEntry {
@@ -27,11 +27,28 @@ export function useWebSocket(billId: string | null, token: string | null) {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout>()
   const pingIntervalRef = useRef<NodeJS.Timeout>()
 
-  const connect = () => {
+  const disconnect = useCallback(() => {
+    if (wsRef.current) {
+      wsRef.current.close(1000, 'Component unmounting')
+      wsRef.current = null
+    }
+
+    if (reconnectTimeoutRef.current) {
+      clearTimeout(reconnectTimeoutRef.current)
+    }
+
+    if (pingIntervalRef.current) {
+      clearInterval(pingIntervalRef.current)
+    }
+
+    setIsConnected(false)
+  }, [])
+
+  const connect = useCallback(() => {
     if (!billId || !token) return
 
     const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001'}/ws/bills/${billId}?token=${encodeURIComponent(token)}`
-    
+
     try {
       const ws = new WebSocket(wsUrl)
       wsRef.current = ws
@@ -39,32 +56,31 @@ export function useWebSocket(billId: string | null, token: string | null) {
       ws.onopen = () => {
         console.log('WebSocket connected to bill:', billId)
         setIsConnected(true)
-        
+
         // Start ping interval for keepalive
         pingIntervalRef.current = setInterval(() => {
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify({ type: 'ping' }))
           }
-        }, 30000) // 30 seconds
+        }, 30000)
       }
 
       ws.onmessage = (event) => {
         try {
           const message: WebSocketMessage = JSON.parse(event.data)
-          
+
           switch (message.type) {
             case 'INITIAL_CHANGELOG':
               if (Array.isArray(message.data)) {
                 setChangelog(message.data)
               }
               break
-              
+
             case 'BILL_UPDATED':
               if (message.data && !Array.isArray(message.data)) {
                 const entry = message.data as ChangelogEntry
-                setChangelog(prev => [entry, ...prev.slice(0, 19)]) // Keep last 20 entries
-                
-                // Show toast notification
+                setChangelog(prev => [entry, ...prev.slice(0, 19)])
+
                 const actionText = getActionText(message.action || entry.action)
                 toast.success(`${entry.user.fullName} ${actionText}`, {
                   duration: 5000,
@@ -72,9 +88,8 @@ export function useWebSocket(billId: string | null, token: string | null) {
                 })
               }
               break
-              
+
             case 'pong':
-              // Keepalive response
               break
           }
         } catch (error) {
@@ -85,12 +100,11 @@ export function useWebSocket(billId: string | null, token: string | null) {
       ws.onclose = (event) => {
         console.log('WebSocket closed:', event.code, event.reason)
         setIsConnected(false)
-        
-        // Clear intervals
+
         if (pingIntervalRef.current) {
           clearInterval(pingIntervalRef.current)
         }
-        
+
         // Attempt reconnection if not a clean close
         if (event.code !== 1000 && billId && token) {
           console.log('Attempting to reconnect in 3 seconds...')
@@ -107,29 +121,12 @@ export function useWebSocket(billId: string | null, token: string | null) {
     } catch (error) {
       console.error('Failed to create WebSocket:', error)
     }
-  }
-
-  const disconnect = () => {
-    if (wsRef.current) {
-      wsRef.current.close(1000, 'Component unmounting')
-      wsRef.current = null
-    }
-    
-    if (reconnectTimeoutRef.current) {
-      clearTimeout(reconnectTimeoutRef.current)
-    }
-    
-    if (pingIntervalRef.current) {
-      clearInterval(pingIntervalRef.current)
-    }
-    
-    setIsConnected(false)
-  }
+  }, [billId, token])
 
   useEffect(() => {
     connect()
     return disconnect
-  }, [billId, token])
+  }, [connect, disconnect])
 
   return {
     changelog,
