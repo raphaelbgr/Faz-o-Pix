@@ -7,6 +7,7 @@ import { api } from '@/lib/api'
 import { formatCurrency, formatDateBrazilian, formatRelativeTimeBrazilian } from '@/utils/validation'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { ChangelogPanel } from '@/components/ChangelogPanel'
+import { BalancePanel } from '@/components/BalancePanel'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import AddExpenseModalV2 from '@/components/AddExpenseModalV2'
 import { useEffect, useState } from 'react'
@@ -97,6 +98,15 @@ export default function BillDetailPage() {
       return response.data
     },
     enabled: !!billId,
+  })
+
+  const { data: balances } = useQuery({
+    queryKey: ['bill-balances', billId],
+    queryFn: async () => {
+      const response = await api.get(`/bills/${billId}/balances`)
+      return response.data
+    },
+    enabled: !!billId && !!bill,
   })
 
   const { changelog, isConnected } = useWebSocket(billId, token)
@@ -389,8 +399,9 @@ export default function BillDetailPage() {
             )}
           </div>
 
-          {/* Sidebar - Changelog */}
-          <div>
+          {/* Sidebar - Balances + Changelog */}
+          <div className="space-y-8">
+            {balances && <BalancePanel data={balances} />}
             <ChangelogPanel changelog={changelog} isConnected={isConnected} />
           </div>
         </div>
