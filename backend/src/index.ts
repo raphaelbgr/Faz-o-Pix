@@ -36,7 +36,7 @@ async function buildApp() {
   });
 
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:63293',
+    origin: process.env.CORS_ORIGIN || true, // Allow any origin in dev (uses request Origin header)
     credentials: true,
   });
 
