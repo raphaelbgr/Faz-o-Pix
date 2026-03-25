@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export default function HomePage() {
   return (
@@ -13,6 +16,7 @@ export default function HomePage() {
             <span className="text-xl font-bold text-gray-900 dark:text-white">Faz-o-Pix</span>
           </div>
           <div className="flex items-center gap-3">
+            <ThemeToggle />
             <Link
               href="/login"
               className="text-sm text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium px-4 py-2 rounded-xl hover:bg-gray-100 dark:hover:bg-slate-800 transition"
