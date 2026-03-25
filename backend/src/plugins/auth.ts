@@ -23,7 +23,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
     secret: process.env.JWT_SECRET || 'dev_jwt_secret_change_in_production_123456',
     cookie: {
       cookieName: 'fazopix_session',
-      signed: true,
+      signed: false,
     },
   });
 

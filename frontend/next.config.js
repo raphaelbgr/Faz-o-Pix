@@ -3,8 +3,22 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
   output: 'standalone',
-  experimental: {
-    typedRoutes: true,
+  async rewrites() {
+    const backend = process.env.BACKEND_URL || 'http://localhost:63292'
+    return [
+      {
+        source: '/api/:path*',
+        destination: `${backend}/api/:path*`,
+      },
+      {
+        source: '/health/:path*',
+        destination: `${backend}/health/:path*`,
+      },
+      {
+        source: '/ws/:path*',
+        destination: `${backend}/ws/:path*`,
+      },
+    ]
   },
 }
 

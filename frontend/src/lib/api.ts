@@ -1,28 +1,14 @@
 import axios from 'axios'
 import { toast } from 'react-hot-toast'
 
-function getBaseURL(): string {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL
-  if (typeof window !== 'undefined') {
-    return `http://${window.location.hostname}:63292/api`
-  }
-  return 'http://localhost:63292/api'
-}
-
+// Use same-origin proxy — all /api/* requests go through Next.js
+// which forwards to the backend. This avoids cross-origin cookie issues.
 export const api = axios.create({
-  baseURL: getBaseURL(),
+  baseURL: '/api',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
-})
-
-api.interceptors.request.use((config) => {
-  // Ensure baseURL uses current hostname (handles SSR -> client transition)
-  if (typeof window !== 'undefined' && !process.env.NEXT_PUBLIC_API_URL) {
-    config.baseURL = `http://${window.location.hostname}:63292/api`
-  }
-  return config
 })
 
 api.interceptors.response.use(
