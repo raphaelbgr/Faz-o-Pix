@@ -20,29 +20,7 @@ interface ServiceCheck {
 
 export default async function healthRoutes(fastify: FastifyInstance) {
   // Comprehensive health check endpoint
-  fastify.get('/health', {
-    schema: {
-      description: 'Comprehensive health check for all application services',
-      tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string', enum: ['healthy', 'unhealthy'] },
-            timestamp: { type: 'string', format: 'date-time' },
-            services: {
-              type: 'object',
-              properties: {
-                database: { type: 'string', enum: ['connected', 'disconnected'] },
-              }
-            },
-            version: { type: 'string' },
-            uptime: { type: 'number' }
-          }
-        }
-      }
-    }
-  }, async (request, reply: FastifyReply) => {
+  fastify.get('/health', async (request, reply: FastifyReply) => {
     const startTime = Date.now();
 
     // Check database connection
@@ -77,12 +55,7 @@ export default async function healthRoutes(fastify: FastifyInstance) {
   });
 
   // Detailed health check with service diagnostics
-  fastify.get('/health/detailed', {
-    schema: {
-      description: 'Detailed health check with service diagnostics',
-      tags: ['Health'],
-    }
-  }, async (_request, reply: FastifyReply) => {
+  fastify.get('/health/detailed', async (_request, reply: FastifyReply) => {
     const startTime = Date.now();
 
     const databaseCheck = await checkDatabaseConnection(fastify.prisma);

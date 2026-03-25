@@ -1,15 +1,10 @@
 import { FastifyPluginAsync } from 'fastify';
-import { 
-  createBillSchema, 
-  addMemberSchema, 
+import {
+  createBillSchema,
+  addMemberSchema,
   addExpenseSchema,
   recordSettlementSchema,
   getBillSchema,
-  getBalancesSchema,
-  CreateBillInput,
-  AddMemberInput,
-  AddExpenseInput,
-  RecordSettlementInput,
 } from '../schemas/bills';
 import { normalizeIdentifier } from '../utils/validation';
 import { ShareType } from '@prisma/client';
@@ -20,16 +15,13 @@ import { generatePixBRCode } from '../utils/pixPayment';
 const billRoutes: FastifyPluginAsync = async (fastify) => {
   const changelogService = new ChangelogService(fastify, fastify.prisma);
   // Create bill
-  fastify.post<{ Body: CreateBillInput }>(
+  fastify.post(
     '/',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        body: createBillSchema.shape.body,
-      },
     },
     async (request, reply) => {
-      const { name, description, simplifyDebts } = request.body;
+      const { name, description, simplifyDebts } = createBillSchema.shape.body.parse(request.body);
       const userId = request.appUser!.id;
 
       const bill = await fastify.prisma.$transaction(async (tx) => {
@@ -117,18 +109,14 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Add member to bill
-  fastify.post<{ Params: { id: string }; Body: AddMemberInput }>(
+  fastify.post(
     '/:id/members',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: addMemberSchema.shape.params,
-        body: addMemberSchema.shape.body,
-      },
     },
     async (request, reply) => {
-      const { id: billId } = request.params;
-      const { identifierType, identifierValue, displayName } = request.body;
+      const { id: billId } = getBillSchema.shape.params.parse(request.params);
+      const { identifierType, identifierValue, displayName } = addMemberSchema.shape.body.parse(request.body);
 
       // Check if user is bill owner
       const bill = await fastify.prisma.bill.findFirst({
@@ -220,18 +208,14 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Add expense
-  fastify.post<{ Params: { id: string }; Body: AddExpenseInput }>(
+  fastify.post(
     '/:id/expenses',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: addExpenseSchema.shape.params,
-        body: addExpenseSchema.shape.body,
-      },
     },
     async (request, reply) => {
-      const { id: billId } = request.params;
-      const { payerParticipantId, amountCents, description, spentAt, splits } = request.body;
+      const { id: billId } = getBillSchema.shape.params.parse(request.params);
+      const { payerParticipantId, amountCents, description, spentAt, splits } = addExpenseSchema.shape.body.parse(request.body);
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -335,12 +319,9 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: getBillSchema.shape.params,
-      },
     },
     async (request) => {
-      const { id: billId } = request.params;
+      const { id: billId } = request.params as { id: string };
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -413,12 +394,9 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id/balances',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: getBalancesSchema.shape.params,
-      },
     },
     async (request) => {
-      const { id: billId } = request.params;
+      const { id: billId } = request.params as { id: string };
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -479,18 +457,14 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Record settlement
-  fastify.post<{ Params: { id: string }; Body: RecordSettlementInput }>(
+  fastify.post(
     '/:id/settlements',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: recordSettlementSchema.shape.params,
-        body: recordSettlementSchema.shape.body,
-      },
     },
     async (request, reply) => {
-      const { id: billId } = request.params;
-      const { fromParticipantId, toParticipantId, amountCents, method, reference, note } = request.body;
+      const { id: billId } = getBillSchema.shape.params.parse(request.params);
+      const { fromParticipantId, toParticipantId, amountCents, method, reference, note } = recordSettlementSchema.shape.body.parse(request.body);
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -569,12 +543,9 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id/expenses',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: getBillSchema.shape.params,
-      },
     },
     async (request) => {
-      const { id: billId } = request.params;
+      const { id: billId } = request.params as { id: string };
 
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
         where: { userId: request.appUser!.id },
@@ -633,7 +604,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       onRequest: [fastify.authenticate],
     },
     async (request) => {
-      const { id: billId, expenseId } = request.params;
+      const { id: billId, expenseId } = request.params as { id: string; expenseId: string };
 
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
         where: { userId: request.appUser!.id },
@@ -675,17 +646,14 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Update expense
-  fastify.put<{ Params: { id: string; expenseId: string }; Body: AddExpenseInput }>(
+  fastify.put(
     '/:id/expenses/:expenseId',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        body: addExpenseSchema.shape.body,
-      },
     },
     async (request, reply) => {
-      const { id: billId, expenseId } = request.params;
-      const { payerParticipantId, amountCents, description, spentAt, splits } = request.body;
+      const { id: billId, expenseId } = request.params as { id: string; expenseId: string };
+      const { payerParticipantId, amountCents, description, spentAt, splits } = addExpenseSchema.shape.body.parse(request.body);
 
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
         where: { userId: request.appUser!.id },
@@ -783,7 +751,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       onRequest: [fastify.authenticate],
     },
     async (request, reply) => {
-      const { id: billId, expenseId } = request.params;
+      const { id: billId, expenseId } = request.params as { id: string; expenseId: string };
 
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
         where: { userId: request.appUser!.id },
@@ -826,12 +794,9 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id/settlements',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: getBillSchema.shape.params,
-      },
     },
     async (request) => {
-      const { id: billId } = request.params;
+      const { id: billId } = request.params as { id: string };
 
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
         where: { userId: request.appUser!.id },
@@ -883,12 +848,9 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     '/:id/changelog',
     {
       onRequest: [fastify.authenticate],
-      schema: {
-        params: getBillSchema.shape.params,
-      },
     },
     async (request) => {
-      const { id: billId } = request.params;
+      const { id: billId } = request.params as { id: string };
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -928,8 +890,8 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       onRequest: [fastify.authenticate],
     },
     async (request) => {
-      const { id: billId } = request.params;
-      const { fromParticipantId, toParticipantId, amountCents } = request.body;
+      const { id: billId } = request.params as { id: string };
+      const { fromParticipantId, toParticipantId, amountCents } = request.body as { fromParticipantId: string; toParticipantId: string; amountCents: number };
 
       // Verify user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({

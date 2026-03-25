@@ -1,28 +1,15 @@
 import { FastifyPluginAsync } from 'fastify';
-import { signupSchema, loginSchema, SignupInput, LoginInput } from '../schemas/auth';
+import { signupSchema, loginSchema } from '../schemas/auth';
 import { normalizeIdentifier, detectIdentifierType } from '../utils/validation';
 import { Prisma } from '@prisma/client';
 
 const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Signup
-  fastify.post<{ Body: SignupInput }>(
+  fastify.post(
     '/signup',
-    {
-      schema: {
-        body: signupSchema.shape.body,
-        response: {
-          201: {
-            type: 'object',
-            properties: {
-              userId: { type: 'string' },
-              message: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
+    { onRequest: [] },
     async (request, reply) => {
-      const { fullName, password, identifiers } = request.body;
+      const { fullName, password, identifiers } = signupSchema.shape.body.parse(request.body);
 
       // Hash password
       const passwordHash = await fastify.hashPassword(password);
@@ -145,24 +132,10 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
   );
 
   // Login
-  fastify.post<{ Body: LoginInput }>(
+  fastify.post(
     '/login',
-    {
-      schema: {
-        body: loginSchema.shape.body,
-        response: {
-          200: {
-            type: 'object',
-            properties: {
-              userId: { type: 'string' },
-              message: { type: 'string' },
-            },
-          },
-        },
-      },
-    },
     async (request, reply) => {
-      const { identifier, password } = request.body;
+      const { identifier, password } = loginSchema.shape.body.parse(request.body);
 
       // Try to detect identifier type
       const detectedType = detectIdentifierType(identifier);

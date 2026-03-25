@@ -30,7 +30,7 @@ export function useWebSocket(billId: string | null, token: string | null) {
   const connect = () => {
     if (!billId || !token) return
 
-    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:3001'}/ws/bills/${billId}?token=${encodeURIComponent(token)}`
+    const wsUrl = `${process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:63292'}/ws/bills/${billId}?token=${encodeURIComponent(token)}`
     
     try {
       const ws = new WebSocket(wsUrl)

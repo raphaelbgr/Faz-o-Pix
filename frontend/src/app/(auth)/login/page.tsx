@@ -56,8 +56,8 @@ export default function LoginPage() {
         <div className="glass-card p-8 shadow-lg">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Entrar</h2>
 
-          <div className="mb-6 p-3 rounded-xl bg-pix-50/60 border border-pix-100">
-            <p className="text-xs text-pix-800 text-center">
+          <div className="mb-6 p-3 rounded-xl bg-pix-50/60 dark:bg-pix-900/30 border border-pix-100 dark:border-pix-800/50">
+            <p className="text-xs text-pix-800 dark:text-pix-200 text-center">
               <strong>100% seguro e conforme LGPD</strong>
               <br />
               Seus dados ficam no Brasil e sao criptografados
@@ -103,7 +103,7 @@ export default function LoginPage() {
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
 
-            <p className="text-center text-sm text-gray-600">
+            <p className="text-center text-sm text-gray-600 dark:text-gray-400">
               Nao tem conta?{' '}
               <Link href="/signup" className="font-medium text-pix-600 hover:text-pix-700">
                 Cadastre-se

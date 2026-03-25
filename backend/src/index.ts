@@ -36,7 +36,7 @@ async function buildApp() {
   });
 
   await app.register(cors, {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:3000',
+    origin: process.env.CORS_ORIGIN || 'http://localhost:63293',
     credentials: true,
   });
 
@@ -61,7 +61,7 @@ async function buildApp() {
       },
       servers: [
         {
-          url: process.env.API_URL || 'http://localhost:3001',
+          url: process.env.API_URL || 'http://localhost:63292',
         },
       ],
     },
@@ -94,7 +94,7 @@ async function buildApp() {
 async function start() {
   try {
     const app = await buildApp();
-    const port = parseInt(process.env.PORT || '3001', 10);
+    const port = parseInt(process.env.PORT || '63292', 10);
     const host = process.env.HOST || '0.0.0.0';
 
     await app.listen({ port, host });
