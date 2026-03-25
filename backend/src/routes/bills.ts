@@ -15,6 +15,7 @@ import { normalizeIdentifier } from '../utils/validation';
 import { ShareType } from '@prisma/client';
 import { calculateBalances, simplifyDebts } from '../services/balanceCalculator';
 import { ChangelogService } from '../services/changelogService';
+import { generatePixBRCode } from '../utils/pixPayment';
 
 const billRoutes: FastifyPluginAsync = async (fastify) => {
   const changelogService = new ChangelogService(fastify, fastify.prisma);
@@ -29,7 +30,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
     },
     async (request, reply) => {
       const { name, description, simplifyDebts } = request.body;
-      const userId = request.user!.id;
+      const userId = request.appUser!.id;
 
       const bill = await fastify.prisma.$transaction(async (tx) => {
         // Get user's participant
@@ -74,7 +75,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       onRequest: [fastify.authenticate],
     },
     async (request) => {
-      const userId = request.user!.id;
+      const userId = request.appUser!.id;
 
       // Get user's participant
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
@@ -133,7 +134,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       const bill = await fastify.prisma.bill.findFirst({
         where: {
           id: billId,
-          ownerUserId: request.user!.id,
+          ownerUserId: request.appUser!.id,
         },
       });
 
@@ -210,7 +211,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       // Log member addition
       await changelogService.logMemberAdded(
         billId, 
-        request.user!.id, 
+        request.appUser!.id, 
         member.participant.displayName || identifierValue
       );
 
@@ -234,7 +235,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
-        where: { userId: request.user!.id },
+        where: { userId: request.appUser!.id },
       });
 
       if (!userParticipant) {
@@ -319,7 +320,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       // Log expense addition
       await changelogService.logExpenseAdded(
         billId,
-        request.user!.id,
+        request.appUser!.id,
         expense!.id,
         expense!.description || 'Sem descrição',
         expense!.amountCents
@@ -343,7 +344,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
-        where: { userId: request.user!.id },
+        where: { userId: request.appUser!.id },
       });
 
       if (!userParticipant) {
@@ -421,7 +422,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
-        where: { userId: request.user!.id },
+        where: { userId: request.appUser!.id },
       });
 
       if (!userParticipant) {
@@ -493,7 +494,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
-        where: { userId: request.user!.id },
+        where: { userId: request.appUser!.id },
       });
 
       if (!userParticipant) {
@@ -552,7 +553,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       // Log settlement
       await changelogService.logSettlementAdded(
         billId,
-        request.user!.id,
+        request.appUser!.id,
         settlement.id,
         settlement.fromParticipant.displayName || 'Participante',
         settlement.toParticipant.displayName || 'Participante',
@@ -560,6 +561,320 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       );
 
       return reply.status(201).send(settlement);
+    }
+  );
+
+  // Get expenses list
+  fastify.get<{ Params: { id: string } }>(
+    '/:id/expenses',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: getBillSchema.shape.params,
+      },
+    },
+    async (request) => {
+      const { id: billId } = request.params;
+
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const member = await fastify.prisma.billMember.findFirst({
+        where: {
+          billId,
+          participantId: userParticipant.participantId,
+        },
+      });
+
+      if (!member) {
+        throw fastify.httpErrors.forbidden('Somente membros podem ver despesas');
+      }
+
+      const expenses = await fastify.prisma.expense.findMany({
+        where: { billId },
+        include: {
+          payer: true,
+          splits: {
+            include: {
+              participant: true,
+            },
+          },
+        },
+        orderBy: { spentAt: 'desc' },
+      });
+
+      const totalAmountCents = expenses.reduce((sum, e) => sum + e.amountCents, 0);
+      const myTotalPaid = expenses
+        .filter(e => e.payerParticipantId === userParticipant.participantId)
+        .reduce((sum, e) => sum + e.amountCents, 0);
+      const myTotalOwed = expenses.reduce((sum, e) => {
+        const mySplit = e.splits.find(s => s.participantId === userParticipant.participantId);
+        return sum + (mySplit?.amountCents || 0);
+      }, 0);
+
+      return {
+        expenses,
+        totalAmountCents,
+        myTotalPaid,
+        myTotalOwed,
+      };
+    }
+  );
+
+  // Get single expense
+  fastify.get<{ Params: { id: string; expenseId: string } }>(
+    '/:id/expenses/:expenseId',
+    {
+      onRequest: [fastify.authenticate],
+    },
+    async (request) => {
+      const { id: billId, expenseId } = request.params;
+
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const member = await fastify.prisma.billMember.findFirst({
+        where: {
+          billId,
+          participantId: userParticipant.participantId,
+        },
+      });
+
+      if (!member) {
+        throw fastify.httpErrors.forbidden('Somente membros podem ver despesas');
+      }
+
+      const expense = await fastify.prisma.expense.findFirst({
+        where: { id: expenseId, billId },
+        include: {
+          payer: true,
+          splits: {
+            include: {
+              participant: true,
+            },
+          },
+        },
+      });
+
+      if (!expense) {
+        throw fastify.httpErrors.notFound('Despesa não encontrada');
+      }
+
+      return expense;
+    }
+  );
+
+  // Update expense
+  fastify.put<{ Params: { id: string; expenseId: string }; Body: AddExpenseInput }>(
+    '/:id/expenses/:expenseId',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        body: addExpenseSchema.shape.body,
+      },
+    },
+    async (request, reply) => {
+      const { id: billId, expenseId } = request.params;
+      const { payerParticipantId, amountCents, description, spentAt, splits } = request.body;
+
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const existingExpense = await fastify.prisma.expense.findFirst({
+        where: { id: expenseId, billId },
+      });
+
+      if (!existingExpense) {
+        throw fastify.httpErrors.notFound('Despesa não encontrada');
+      }
+
+      // Check 24-hour edit window
+      const hoursSinceCreation = (Date.now() - existingExpense.createdAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceCreation > 24) {
+        throw fastify.httpErrors.forbidden('Despesas só podem ser editadas nas primeiras 24 horas');
+      }
+
+      const updated = await fastify.prisma.$transaction(async (tx) => {
+        // Verify all split participants are bill members
+        const participantIds = [...new Set(splits.map(s => s.participantId))];
+        const members = await tx.billMember.findMany({
+          where: {
+            billId,
+            participantId: { in: participantIds },
+          },
+        });
+
+        if (members.length !== participantIds.length) {
+          throw fastify.httpErrors.badRequest('Todos os participantes do rateio devem ser membros');
+        }
+
+        // Delete old splits
+        await tx.expenseSplit.deleteMany({
+          where: { expenseId },
+        });
+
+        // Update expense
+        await tx.expense.update({
+          where: { id: expenseId },
+          data: {
+            payerParticipantId,
+            amountCents,
+            description,
+            spentAt,
+          },
+        });
+
+        // Calculate and create new splits
+        const splitData = calculateSplitAmounts(amountCents, splits);
+        await tx.expenseSplit.createMany({
+          data: splitData.map(split => ({
+            expenseId,
+            participantId: split.participantId,
+            shareType: split.shareType,
+            shareValue: split.shareValue,
+            amountCents: split.amountCents,
+          })),
+        });
+
+        return tx.expense.findUnique({
+          where: { id: expenseId },
+          include: {
+            payer: true,
+            splits: {
+              include: {
+                participant: true,
+              },
+            },
+          },
+        });
+      });
+
+      await changelogService.logExpenseUpdated(
+        billId,
+        request.appUser!.id,
+        expenseId,
+        updated!.description || 'Sem descrição',
+        { amountCents, description }
+      );
+
+      return reply.send(updated);
+    }
+  );
+
+  // Delete expense
+  fastify.delete<{ Params: { id: string; expenseId: string } }>(
+    '/:id/expenses/:expenseId',
+    {
+      onRequest: [fastify.authenticate],
+    },
+    async (request, reply) => {
+      const { id: billId, expenseId } = request.params;
+
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const expense = await fastify.prisma.expense.findFirst({
+        where: { id: expenseId, billId },
+      });
+
+      if (!expense) {
+        throw fastify.httpErrors.notFound('Despesa não encontrada');
+      }
+
+      // Check 24-hour delete window
+      const hoursSinceCreation = (Date.now() - expense.createdAt.getTime()) / (1000 * 60 * 60);
+      if (hoursSinceCreation > 24) {
+        throw fastify.httpErrors.forbidden('Despesas só podem ser removidas nas primeiras 24 horas');
+      }
+
+      await fastify.prisma.expense.delete({
+        where: { id: expenseId },
+      });
+
+      await changelogService.logExpenseDeleted(
+        billId,
+        request.appUser!.id,
+        expense.description || 'Sem descrição'
+      );
+
+      return reply.status(204).send();
+    }
+  );
+
+  // Get settlements list
+  fastify.get<{ Params: { id: string } }>(
+    '/:id/settlements',
+    {
+      onRequest: [fastify.authenticate],
+      schema: {
+        params: getBillSchema.shape.params,
+      },
+    },
+    async (request) => {
+      const { id: billId } = request.params;
+
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const member = await fastify.prisma.billMember.findFirst({
+        where: {
+          billId,
+          participantId: userParticipant.participantId,
+        },
+      });
+
+      if (!member) {
+        throw fastify.httpErrors.forbidden('Somente membros podem ver pagamentos');
+      }
+
+      const settlements = await fastify.prisma.settlement.findMany({
+        where: { billId },
+        include: {
+          fromParticipant: true,
+          toParticipant: true,
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      const totalAmountCents = settlements.reduce((sum, s) => sum + s.amountCents, 0);
+      const byMethod: Record<string, number> = {};
+      for (const s of settlements) {
+        byMethod[s.method] = (byMethod[s.method] || 0) + s.amountCents;
+      }
+
+      return {
+        settlements,
+        totalCount: settlements.length,
+        summary: {
+          totalAmountCents,
+          byMethod,
+        },
+      };
     }
   );
 
@@ -577,7 +892,7 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
 
       // Check if user is bill member
       const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
-        where: { userId: request.user!.id },
+        where: { userId: request.appUser!.id },
       });
 
       if (!userParticipant) {
@@ -596,6 +911,95 @@ const billRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       return changelogService.getRecentChangelog(billId);
+    }
+  );
+
+  // Generate Pix BR Code for a payment
+  fastify.post<{
+    Params: { id: string };
+    Body: {
+      fromParticipantId: string;
+      toParticipantId: string;
+      amountCents: number;
+    };
+  }>(
+    '/:id/pix-code',
+    {
+      onRequest: [fastify.authenticate],
+    },
+    async (request) => {
+      const { id: billId } = request.params;
+      const { fromParticipantId, toParticipantId, amountCents } = request.body;
+
+      // Verify user is bill member
+      const userParticipant = await fastify.prisma.userParticipantLink.findUnique({
+        where: { userId: request.appUser!.id },
+      });
+
+      if (!userParticipant) {
+        throw fastify.httpErrors.forbidden('User participant not found');
+      }
+
+      const member = await fastify.prisma.billMember.findFirst({
+        where: {
+          billId,
+          participantId: userParticipant.participantId,
+        },
+      });
+
+      if (!member) {
+        throw fastify.httpErrors.forbidden('Somente membros podem gerar códigos Pix');
+      }
+
+      // Get the recipient's Pix key
+      const toParticipant = await fastify.prisma.participant.findUnique({
+        where: { id: toParticipantId },
+        include: {
+          identifiers: {
+            where: {
+              type: { in: ['PIX_CPF', 'PIX_CNPJ', 'PIX_EMAIL', 'PIX_PHONE', 'PIX_EVP'] },
+            },
+            take: 1,
+          },
+        },
+      });
+
+      if (!toParticipant) {
+        throw fastify.httpErrors.notFound('Participante destinatário não encontrado');
+      }
+
+      const pixIdentifier = toParticipant.identifiers[0];
+      if (!pixIdentifier) {
+        return {
+          brCode: null,
+          message: 'Destinatário não possui chave Pix cadastrada',
+        };
+      }
+
+      const fromParticipant = await fastify.prisma.participant.findUnique({
+        where: { id: fromParticipantId },
+      });
+
+      const bill = await fastify.prisma.bill.findUnique({
+        where: { id: billId },
+      });
+
+      const brCode = generatePixBRCode({
+        pixKey: pixIdentifier.value,
+        merchantName: toParticipant.displayName || 'PARTICIPANTE',
+        amountCents,
+        description: `Faz-o-Pix: ${bill?.name || 'Pagamento'}`,
+        txId: `FOP${billId.substring(0, 8)}`,
+      });
+
+      return {
+        brCode,
+        pixKey: pixIdentifier.value,
+        pixKeyType: pixIdentifier.type,
+        from: fromParticipant?.displayName || 'Participante',
+        to: toParticipant.displayName || 'Participante',
+        amountCents,
+      };
     }
   );
 };

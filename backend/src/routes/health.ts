@@ -1,6 +1,22 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyInstance, FastifyReply } from 'fastify';
 import { PrismaClient } from '@prisma/client';
-import { HealthStatus, ServiceCheck } from '../../../shared/types/common';
+
+interface HealthStatus {
+  status: 'healthy' | 'unhealthy';
+  timestamp: string;
+  services: {
+    database: 'connected' | 'disconnected';
+  };
+  version: string;
+  uptime: number;
+}
+
+interface ServiceCheck {
+  name: string;
+  status: 'connected' | 'disconnected';
+  responseTime: number;
+  error?: string;
+}
 
 export default async function healthRoutes(fastify: FastifyInstance) {
   // Comprehensive health check endpoint
@@ -26,16 +42,15 @@ export default async function healthRoutes(fastify: FastifyInstance) {
         }
       }
     }
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  }, async (request, reply: FastifyReply) => {
     const startTime = Date.now();
-    
+
     // Check database connection
     const databaseCheck = await checkDatabaseConnection(fastify.prisma);
 
-    // Determine overall health status
-    const databaseStatus = databaseCheck.status === 'connected' 
-      ? 'connected' 
-      : 'disconnected';
+    const databaseStatus = databaseCheck.status === 'connected'
+      ? 'connected' as const
+      : 'disconnected' as const;
 
     const isHealthy = databaseStatus === 'connected';
 
@@ -49,13 +64,9 @@ export default async function healthRoutes(fastify: FastifyInstance) {
       uptime: process.uptime()
     };
 
-    // Set appropriate HTTP status code
     reply.code(isHealthy ? 200 : 503);
-    
-    // Add response time header
     reply.header('X-Response-Time', `${Date.now() - startTime}ms`);
-    
-    // Log health check result
+
     fastify.log.debug({
       healthCheck: healthStatus,
       responseTime: Date.now() - startTime,
@@ -70,28 +81,12 @@ export default async function healthRoutes(fastify: FastifyInstance) {
     schema: {
       description: 'Detailed health check with service diagnostics',
       tags: ['Health'],
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            services: { type: 'array' },
-            system: { type: 'object' },
-            version: { type: 'string' },
-            uptime: { type: 'number' }
-          }
-        }
-      }
     }
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  }, async (_request, reply: FastifyReply) => {
     const startTime = Date.now();
-    
-    // Check database with detailed diagnostics
+
     const databaseCheck = await checkDatabaseConnection(fastify.prisma);
-
     const services: ServiceCheck[] = [databaseCheck];
-
     const isHealthy = services.every(service => service.status === 'connected');
 
     const detailedHealth = {
@@ -111,42 +106,27 @@ export default async function healthRoutes(fastify: FastifyInstance) {
 
     reply.code(isHealthy ? 200 : 503);
     reply.header('X-Response-Time', `${Date.now() - startTime}ms`);
-    
+
     return detailedHealth;
   });
 
-  // Readiness probe (for Kubernetes/Docker health checks)
-  fastify.get('/health/ready', {
-    schema: {
-      description: 'Readiness probe for container orchestration',
-      tags: ['Health']
-    }
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
-    // Quick check - just verify the service is running
+  // Readiness probe
+  fastify.get('/health/ready', async (_request, reply: FastifyReply) => {
     return reply.code(200).send({ ready: true, timestamp: new Date().toISOString() });
   });
 
-  // Liveness probe (for Kubernetes/Docker health checks)
-  fastify.get('/health/live', {
-    schema: {
-      description: 'Liveness probe for container orchestration',
-      tags: ['Health']
-    }
-  }, async (request: FastifyRequest, reply: FastifyReply) => {
+  // Liveness probe
+  fastify.get('/health/live', async (_request, reply: FastifyReply) => {
     return reply.code(200).send({ alive: true, timestamp: new Date().toISOString() });
   });
 }
 
-/**
- * Check database connectivity with timeout and detailed diagnostics
- */
 async function checkDatabaseConnection(prisma: PrismaClient): Promise<ServiceCheck> {
   const startTime = Date.now();
-  
+
   try {
-    // Test database connectivity with a simple query
     await prisma.$queryRaw`SELECT 1 as test`;
-    
+
     return {
       name: 'database',
       status: 'connected',
@@ -161,4 +141,3 @@ async function checkDatabaseConnection(prisma: PrismaClient): Promise<ServiceChe
     };
   }
 }
-

@@ -228,7 +228,7 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (_request, reply) => {
       reply.clearCookie('fazopix_session');
       return { message: 'Logout successful' };
     }
@@ -240,9 +240,9 @@ const authRoutes: FastifyPluginAsync = async (fastify) => {
     {
       onRequest: [fastify.authenticate],
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const user = await fastify.prisma.user.findUnique({
-        where: { id: request.user!.id },
+        where: { id: request.appUser!.id },
         include: {
           identifiers: {
             select: {

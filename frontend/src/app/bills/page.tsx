@@ -6,6 +6,9 @@ import { api } from '@/lib/api'
 import { formatCurrency } from '@/utils/validation'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+import { CreateBillModal } from '@/components/CreateBillModal'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 interface Bill {
   id: string
@@ -21,6 +24,7 @@ interface Bill {
 
 export default function BillsPage() {
   const router = useRouter()
+  const [showCreateModal, setShowCreateModal] = useState(false)
 
   const { data: bills, isLoading, error } = useQuery<Bill[]>({
     queryKey: ['bills'],
@@ -34,16 +38,16 @@ export default function BillsPage() {
     try {
       await api.post('/auth/logout')
       router.push('/login')
-    } catch (error) {
+    } catch {
       toast.error('Erro ao fazer logout')
     }
   }
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pix-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pix-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-pix-600 mx-auto"></div>
           <p className="mt-4 text-gray-600">Carregando suas contas...</p>
         </div>
       </div>
@@ -52,12 +56,12 @@ export default function BillsPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pix-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-600">Erro ao carregar contas</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="mt-4 px-4 py-2 bg-pix-600 text-white rounded-md hover:bg-pix-700"
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-pix-600 text-white rounded-xl hover:bg-pix-700 transition"
           >
             Tentar novamente
           </button>
@@ -67,12 +71,12 @@ export default function BillsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-pix-50/30 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800">
       <div className="max-w-4xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Faz-o-Pix 🇧🇷</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Faz-o-Pix</h1>
             <p className="text-gray-600">Suas contas compartilhadas</p>
             <div className="flex items-center mt-1">
               <svg className="w-4 h-4 text-pix-600 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -81,12 +85,15 @@ export default function BillsPage() {
               <span className="text-xs text-pix-600 font-medium">Protegido pela LGPD</span>
             </div>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-700"
-          >
-            Sair
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={handleLogout}
+              className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 px-3 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700/50 transition"
+            >
+              Sair
+            </button>
+          </div>
         </div>
 
         {/* Bills Grid */}
@@ -96,10 +103,10 @@ export default function BillsPage() {
               <Link
                 key={bill.id}
                 href={`/bills/${bill.id}`}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow cursor-pointer"
+                className="glass-card p-6 hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer group"
               >
                 <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 truncate flex-1 pr-2">
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate flex-1 pr-2 group-hover:text-pix-700 transition">
                     {bill.name}
                   </h3>
                   {bill.simplifyDebts && (
@@ -108,19 +115,19 @@ export default function BillsPage() {
                     </span>
                   )}
                 </div>
-                
+
                 {bill.description && (
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                     {bill.description}
                   </p>
                 )}
-                
-                <div className="flex justify-between items-center text-sm text-gray-500">
+
+                <div className="flex justify-between items-center text-sm text-gray-500 dark:text-gray-400">
                   <span>{bill._count.members} participantes</span>
                   <span>{bill._count.expenses} gastos</span>
                 </div>
-                
-                <div className="mt-4 pt-4 border-t border-gray-100">
+
+                <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
                   <span className="text-xs text-gray-400">
                     Criada em {new Date(bill.createdAt).toLocaleDateString('pt-BR')}
                   </span>
@@ -129,26 +136,30 @@ export default function BillsPage() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12">
-            <div className="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-              <svg className="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div className="text-center py-16">
+            <div className="mx-auto w-24 h-24 bg-pix-50 rounded-full flex items-center justify-center mb-6">
+              <svg className="w-12 h-12 text-pix-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Nenhuma conta encontrada</h3>
-            <p className="text-gray-600 mb-6">
-              Comece criando sua primeira conta compartilhada
-            </p>
-            <button className="px-4 py-2 bg-pix-600 text-white rounded-md hover:bg-pix-700 transition-colors">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Nenhuma conta encontrada</h3>
+            <p className="text-gray-600 mb-6">Comece criando sua primeira conta compartilhada</p>
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="px-6 py-3 bg-pix-600 text-white rounded-xl hover:bg-pix-700 transition font-medium"
+            >
               Criar primeira conta
             </button>
           </div>
         )}
 
-        {/* Floating Action Button */}
+        {/* FAB */}
         {bills && bills.length > 0 && (
           <div className="fixed bottom-6 right-6">
-            <button className="w-14 h-14 bg-pix-600 text-white rounded-full shadow-lg hover:bg-pix-700 transition-colors flex items-center justify-center">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="w-14 h-14 bg-pix-600 text-white rounded-2xl shadow-lg hover:bg-pix-700 hover:shadow-xl transition-all flex items-center justify-center"
+            >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -156,6 +167,8 @@ export default function BillsPage() {
           </div>
         )}
       </div>
+
+      <CreateBillModal isOpen={showCreateModal} onClose={() => setShowCreateModal(false)} />
     </div>
   )
 }

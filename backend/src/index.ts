@@ -14,7 +14,6 @@ import { websocketPlugin } from './plugins/websocket';
 import authRoutes from './routes/auth';
 import billRoutes from './routes/bills';
 import healthRoutes from './routes/health';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
 const prisma = new PrismaClient();
 
@@ -66,7 +65,6 @@ async function buildApp() {
         },
       ],
     },
-    transform: zodToJsonSchema,
   });
 
   await app.register(swaggerUI, {

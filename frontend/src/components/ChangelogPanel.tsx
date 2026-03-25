@@ -11,7 +11,7 @@ interface ChangelogPanelProps {
 export function ChangelogPanel({ changelog, isConnected }: ChangelogPanelProps) {
   if (changelog.length === 0) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+      <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20 p-4">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-medium text-gray-900">Histórico de Alterações</h3>
           <div className="flex items-center">
@@ -33,7 +33,7 @@ export function ChangelogPanel({ changelog, isConnected }: ChangelogPanelProps) 
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white/80 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20 p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-medium text-gray-900">
           Histórico de Alterações

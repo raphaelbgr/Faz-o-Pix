@@ -8,10 +8,11 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { api } from '@/lib/api'
 import { toast } from 'react-hot-toast'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 const loginSchema = z.object({
-  identifier: z.string().min(1, 'Identificador é obrigatório'),
-  password: z.string().min(1, 'Senha é obrigatória'),
+  identifier: z.string().min(1, 'Identificador e obrigatorio'),
+  password: z.string().min(1, 'Senha e obrigatoria'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -42,84 +43,74 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <div className="text-center">
-            <h2 className="mt-6 text-3xl font-extrabold text-gray-900">
-              Faz-o-Pix 🇧🇷
-            </h2>
-            <p className="mt-2 text-sm text-gray-600">
-              Divisor de contas brasileiro
-            </p>
-            <p className="text-sm text-gray-600">
-              Entre na sua conta
-            </p>
-          </div>
-          
-          <div className="mt-4 bg-pix-50 border border-pix-200 p-3 rounded-md">
-            <div className="text-center">
-              <p className="text-xs text-pix-800">
-                <strong>🔒 100% seguro e conforme LGPD</strong>
-                <br />
-                Seus dados ficam no Brasil e são criptografados
-              </p>
-            </div>
-          </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-pix-50 via-white to-green-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-800 py-12 px-4">
+      <div className="absolute top-4 right-4">
+        <ThemeToggle />
+      </div>
+      <div className="max-w-md w-full">
+        <div className="text-center mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Faz-o-Pix</h1>
+          <p className="mt-2 text-gray-600 dark:text-gray-400">Divisor de contas brasileiro</p>
         </div>
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          <div className="rounded-md shadow-sm -space-y-px">
+
+        <div className="glass-card p-8 shadow-lg">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">Entrar</h2>
+
+          <div className="mb-6 p-3 rounded-xl bg-pix-50/60 border border-pix-100">
+            <p className="text-xs text-pix-800 text-center">
+              <strong>100% seguro e conforme LGPD</strong>
+              <br />
+              Seus dados ficam no Brasil e sao criptografados
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label htmlFor="identifier" className="sr-only">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email, CPF ou Telefone
               </label>
               <input
                 {...register('identifier')}
                 type="text"
                 autoComplete="username"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-pix-500 focus:border-pix-500 focus:z-10 sm:text-sm"
-                placeholder="Email, CPF ou Telefone"
+                className="input-field"
+                placeholder="seu@email.com"
               />
               {errors.identifier && (
                 <p className="mt-1 text-sm text-red-600">{errors.identifier.message}</p>
               )}
             </div>
+
             <div>
-              <label htmlFor="password" className="sr-only">
-                Senha
-              </label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Senha</label>
               <input
                 {...register('password')}
                 type="password"
                 autoComplete="current-password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-pix-500 focus:border-pix-500 focus:z-10 sm:text-sm"
-                placeholder="Senha"
+                className="input-field"
+                placeholder="Sua senha"
               />
               {errors.password && (
                 <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
               )}
             </div>
-          </div>
 
-          <div>
             <button
               type="submit"
               disabled={isLoading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-pix-600 hover:bg-pix-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pix-500 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full px-4 py-2.5 rounded-xl bg-pix-600 text-white hover:bg-pix-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Entrando...' : 'Entrar'}
             </button>
-          </div>
 
-          <div className="text-center">
-            <Link
-              href="/signup"
-              className="font-medium text-pix-600 hover:text-pix-500"
-            >
-              Não tem conta? Cadastre-se
-            </Link>
-          </div>
-        </form>
+            <p className="text-center text-sm text-gray-600">
+              Nao tem conta?{' '}
+              <Link href="/signup" className="font-medium text-pix-600 hover:text-pix-700">
+                Cadastre-se
+              </Link>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   )

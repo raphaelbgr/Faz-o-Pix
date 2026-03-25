@@ -10,8 +10,11 @@ declare module 'fastify' {
     hashPassword: (password: string) => Promise<string>;
     verifyPassword: (hash: string, password: string) => Promise<boolean>;
   }
+}
+
+declare module 'fastify' {
   interface FastifyRequest {
-    user?: User;
+    appUser?: User;
   }
 }
 
@@ -40,8 +43,9 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
   fastify.decorate('authenticate', async (request: FastifyRequest) => {
     try {
       await request.jwtVerify();
-      
-      const userId = (request.user as any).userId;
+
+      const payload = request.user as Record<string, unknown>;
+      const userId = payload.userId as string | undefined;
       if (!userId) {
         throw new Error('Invalid token payload');
       }
@@ -54,7 +58,7 @@ const authPlugin: FastifyPluginAsync = async (fastify) => {
         throw new Error('User not found');
       }
 
-      request.user = user;
+      request.appUser = user;
     } catch (err) {
       throw fastify.httpErrors.unauthorized('Authentication required');
     }

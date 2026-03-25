@@ -4,21 +4,89 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: #fafafa;
+    --foreground: #111827;
+    --glass-bg: rgba(255, 255, 255, 0.8);
+    --glass-border: rgba(255, 255, 255, 0.2);
+    --glass-modal-bg: rgba(255, 255, 255, 0.9);
+    --input-bg: rgba(255, 255, 255, 0.6);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: #0f172a;
+    --foreground: #f1f5f9;
+    --glass-bg: rgba(30, 41, 59, 0.8);
+    --glass-border: rgba(71, 85, 105, 0.3);
+    --glass-modal-bg: rgba(30, 41, 59, 0.95);
+    --input-bg: rgba(30, 41, 59, 0.6);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: rgba(22, 163, 74, 0.2);
   }
 }
 
-@layer base {
-  * {
-    @apply border-border;
+@layer components {
+  /* Liquid Glass card */
+  .glass-card {
+    @apply backdrop-blur-xl rounded-2xl shadow-sm;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--card-shadow);
   }
-  body {
-    @apply bg-background text-foreground;
+
+  /* Liquid Glass modal overlay */
+  .glass-overlay {
+    @apply fixed inset-0 bg-black/40 backdrop-blur-sm;
+  }
+
+  /* Liquid Glass modal */
+  .glass-modal {
+    @apply relative backdrop-blur-xl rounded-2xl shadow-2xl;
+    background: var(--glass-modal-bg);
+    border: 1px solid var(--glass-border);
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply px-4 py-2.5 rounded-xl bg-pix-600 text-white hover:bg-pix-700 transition font-medium disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Secondary button */
+  .btn-secondary {
+    @apply px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition font-medium;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-600 backdrop-blur-sm focus:ring-2 focus:ring-pix-500 focus:border-transparent outline-none transition text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500;
+    background: var(--input-bg);
+  }
+}
+
+@layer utilities {
+  /* Smooth scroll */
+  .scroll-smooth {
+    scroll-behavior: smooth;
+  }
+
+  /* Hide scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
   }
 }
