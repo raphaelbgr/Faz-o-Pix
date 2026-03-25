@@ -29,6 +29,7 @@
     "argon2": "^0.31.2",
     "fastify": "^4.26.0",
     "fastify-plugin": "^4.5.1",
+    "fastify-type-provider-zod": "^6.1.0",
     "pino-pretty": "^10.3.1",
     "ws": "^8.16.0",
     "zod": "^3.22.4",
